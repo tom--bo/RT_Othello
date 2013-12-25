@@ -63,7 +63,7 @@ function newGame(){
 
 	// スタートボタン押した時の処理
 	document.getElementById('GameStart').onclick = function() {
-      socket.emit('startPushed', 1, function () {
+      socket.emit('startPushed', function () {
       	console.log("startPushed");
       });
 	}
@@ -242,7 +242,11 @@ function connect_socket() {
   $(document).ready(function () {
     // ユーザー名、ルーム名、パスワードを送信
     // url引数で指定されたSocket.IOサーバーへの接続。
-    socket = io.connect('http://localhost');
+
+// ローカルテスト用
+    // socket = io.connect('http://localhost');
+// 本番用
+    socket = io.connect('http://node-rtothello.herokuapp.com/');
 
     // メッセージハンドラの定義
     // サーバーへの接続完了
