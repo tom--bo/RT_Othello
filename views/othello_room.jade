@@ -1,0 +1,48 @@
+extends layout
+block content
+
+	script(src='/js/othello_room.js')
+	script.
+		var minichat = {
+			roomName: '#{room.name}',
+			password: '#{room.password}',
+			userName: '#{user.name}',
+			roomId: '#{room.name}#{room.password}',
+			mode: '#{mode}'
+		};
+
+	h1= title
+	canvas(id='canvas')
+	#info
+
+	input#GameStart(type='button', name='GameStart', value='GameStart')
+
+	// 入室時の確認ダイアログ
+	// パスワードが不正
+	#credentialDialog.modal.hide(data-backdrop='static', keyboard='false')
+		.modal-header
+			h3#credential-dialog-header 入室エラー
+		.modal-body
+			p#credential-dialog-message ルーム情報や名前を再入力してください：
+			form#credential-dialog-form.form-horizontal
+				.control-group
+					label.control-label(for='new-room-name') ルーム名
+					.controls
+						input#new-room(type='text', name='roomName', placeholder='ルーム名を入力...')
+				.control-group
+					label.control-label(for='new-name') 表示するあなたの名前
+					.controls
+						input#new-name(type='text', name='yourName', placeholder='表示名を入力...')
+				.control-group
+					label.control-label(for='new-password') 認証用パスワード
+					.controls
+						label
+							input#new-password(type='password', name='password', placeholder='パスワードを入力...')
+						button.btn.btn-primary(type='submit') 再試行
+				.modal-footer
+					a(href='/') トップページへ戻る
+
+	hr
+	footer
+		p RT_othello 0.0.1
+

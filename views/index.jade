@@ -1,0 +1,50 @@
+extends layout
+block content
+
+  .container
+    .hero-unit
+      h1= title
+      p node.jsによるリアルタイムなオセロゲーム
+
+    .row
+      .span6
+        h2 Create:
+        p ルームを新しく作成する
+        form#new.form-horizontal(action='/othello_room/', method='post')
+          .control-group
+            label.control-label(for='new-room-name') 作成するルーム名
+            .controls
+              input#new-room(type='text', name='roomName', placeholder='ルーム名を入力...')
+          .control-group
+            label.control-label(for='new-name') 表示するあなたの名前
+            .controls
+              input#new-name(type='text', name='yourName', placeholder='表示名を入力...')
+          .control-group
+            label.control-label(for='new-password') 認証用パスワード
+            .controls
+              label
+                input#new-password(type='password', name='password', placeholder='パスワードを入力...')
+              button.btn(type='submit', name='mode', value='create') ルームを作成
+
+      .span6
+        h2 Enter:
+        p 既存のルームに入る
+        form#enter.form-horizontal(action='/othello_room/', method='post')
+          .control-group
+            label.control-label(for='enter-room') ルーム名
+            .controls
+              input#enter-room(type='text', name='roomName', placeholder='ルーム名を入力...')
+          .control-group
+            label.control-label(for='enter-name') 表示するあなたの名前
+            .controls
+              input#enter-name(type='text', name='yourName', placeholder='表示名を入力...')
+          .control-group
+            label.control-label(for='enter-password') 認証用パスワード
+            .controls
+              label
+                input#enter-password(type='password', name='password', placeholder='パスワードを入力...')
+              button.btn(type='submit', name='mode', value='enter') ルームへ入る
+
+  hr
+  footer
+    p RT_Othello 0.0.1
