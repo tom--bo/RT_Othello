@@ -246,7 +246,7 @@ function connect_socket() {
 // ローカルテスト用
     // socket = io.connect('http://localhost');
 // 本番用
-    socket = io.connect('http://node-rtothello.herokuapp.com/');
+    socket = io.connect();
 
     // メッセージハンドラの定義
     // サーバーへの接続完了
