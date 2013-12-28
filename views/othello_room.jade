@@ -12,8 +12,15 @@ block content
 		};
 
 	h1= title
-	canvas(id='canvas')
-	#info
+	- var i = 0;
+	- var j = 0;
+	table(cellspacing=0)
+		- var v = [1,2,3,4,5,6,7,8];
+		each item in v
+			tr
+				each item2 in v
+					td(id='mass#{item}#{item2}' class='mass')
+						img(src='/img/100mass_green.png', alt='')
 
 	input#GameStart(type='button', name='GameStart', value='GameStart')
 

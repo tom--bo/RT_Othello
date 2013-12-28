@@ -1,17 +1,8 @@
 //--------グローバル変数の定義----------
-var mouseX = 0;						// マウスの横方向座標
-var mouseY = 0;						// マウスの縦方向座標
-var mouseBlockX = ~~(mouseX / blockSize);		// マウスのマス上での横方向座標
-var mouseBlockY = ~~(mouseY / blockSize);		// マウスのマス上での縦方向座標
-
-var blockSize = 60;					// １マスのサイズ
-var canvasSize = blockSize * 8;				// ボードのサイズ
-var numSize = 25;					// ボード横の番号幅
 var msgSize = 90;					// メッセージサイズ
 var gameStartFlag = 0;
 var gameEndFlag = 0;					// ゲーム進行フラグ
 var board = new Array();					// ボード配列
-var board2 = new Array();					// ボード配列
 var blackStoneNum = 0;					// 黒石の数
 var whiteStoneNum = 0;					// 白石の数
 var putData = {
@@ -33,37 +24,31 @@ function isOut (x, y){
 
 // 初期化
 function newGame(){
+    // バックグラウンドの色
+    // 黒
+    $("#mass44").css("background-color", "#222");
+    $("#mass55").css("background-color", "#222");
+    $("#mass46").css("background-color", "#222");
+    $("#mass53").css("background-color", "#222");
+    // 白
+    $("#mass34").css("background-color", "#ddd");
+    $("#mass45").css("background-color", "#ddd");
+    $("#mass54").css("background-color", "#ddd");
+    $("#mass65").css("background-color", "#ddd");
+
+    $(".mass").click(function() {
+		id = $(this).attr("id");
+		putData.x = parseInt(id.charAt(5)) - 1;
+		putData.y = parseInt(id.charAt(4)) - 1;
+		socket.emit('check put', putData);
+		console.log(id);
+	});
+
 	// 描画先canvasのidを取得する
-	canvas = document.getElementById('canvas');
-	if( !canvas || !canvas.getContext ) return false; 
-
-	// contextを取得する
-	ctx = canvas.getContext('2d');
-
-	// キャンバスの大きさを取得する
-	canvas.width = canvasSize + numSize;
-	canvas.height = canvasSize + numSize;
-
-	canvas.onclick = function() {
-		if( gameEndFlag == 0 ) {
-			mouseClicked(event);
-			if(gameStartFlag){
-				putData.x = mouseBlockX;
-				putData.y = mouseBlockY;
-				console.log("before check put!!!!!");
-				socket.emit('check put', putData, function (){
-					console.log("check put function ");
-				});
-			}
-			draw(ctx, canvas);
-		} else {
-			newGame();
-		}
-	}
-
 	// スタートボタン押した時の処理
 	document.getElementById('GameStart').onclick = function() {
-      socket.emit('startPushed', function () {
+	  $("#GameStart").val("waiting opponent");
+        socket.emit('startPushed', function () {
       	console.log("startPushed");
       });
 	}
@@ -71,16 +56,12 @@ function newGame(){
 	// ボードの初期化
 	for(var i = 0; i < 8; i++){
 		board[i] = new Array();
-		board2[i] = new Array();
 		for(var j = 0; j < 8; j++){
 			board[i][j] = 0; 
-			board2[i][j] = 0; 
 		}
 	}
 	board[3][3] = board[4][4] = board[3][5] = board[4][2] = 1;
 	board[3][4] = board[4][3] = board[2][3] = board[5][4] = -1;
-	// 初期描画
-	draw(ctx, canvas);
 }
 
 // ゲーム終了
@@ -102,6 +83,7 @@ function countDisk(){
 
 // 石を置いてひっくり返す
 function putStone(x, y, p){
+	startTime = new Date();
 	var i=0, j=0, k=0;
 	var x0, y0, x1, y1, x2, y2;
 	if(board[y][x] != 0) return 0;
@@ -129,110 +111,23 @@ function putStone(x, y, p){
 		}
 	}
 	for(i=0;i<8;i++){
-		console.log(board[i][0] + " " + board[i][1] + " " + board[i][2] + " " + board[i][3] + " " + board[i][4] + " " + board[i][5] + " " + board[i][6] + " " + board[i][7]);
-	}
-}
-
-// マウスの移動
-function mouseClicked(event){
-	console.log("mouseClicked");
-	// マウス座標の取得
-	if( event ) {
-		mouseX = event.pageX - canvas.offsetLeft;
-		mouseY = event.pageY - canvas.offsetTop;
-	} else {
-		mouseX = event.offsetX;
-		mouseY = event.offsetY;
-	}
-	// 実座標
-	mouseX = ~~(mouseX / canvas.offsetWidth * (canvasSize + numSize));
-	mouseY = ~~(mouseY / canvas.offsetHeight * (canvasSize + numSize));
-	// マス座標
-	mouseBlockX = ~~((mouseX - numSize - 0.5) / blockSize);
-	mouseBlockY = ~~((mouseY - numSize - 0.5) / blockSize);
-}
-
-
-function draw(ctx, canvas){
-	// 描画の削除
-	for(var a=0; a<8; a++){
-		for(var b=0; b<8; b++){
-			board2[a][b] = board[b][a];
-		}
-	}
-	ctx.clearRect(0, 0, canvasSize + numSize, canvasSize + numSize);
-
-	// 罫線の描画
-	ctx.beginPath();
-	ctx.globalAlpha = 1;
-	ctx.strokeStyle = '#000000';
-	for( var i = 0; i <= 7; i++ ) {
-		ctx.moveTo( ~~(i * blockSize) + numSize + 0.5, 0.5);
-		ctx.lineTo( ~~(i * blockSize) + numSize + 0.5, canvasSize + numSize + 0.5);
-
-		ctx.moveTo(0.5,  ~~(i * blockSize) + numSize + 0.5);
-		ctx.lineTo(canvasSize + numSize + 0.5, ~~(i * blockSize) + numSize + 0.5);
-	}
-	ctx.stroke();
-
-	// 石の表示
-	canvas.style.cursor = 'default';
-	for( var x = 0; x < 8; x++ ) {
-		for( var y = 0; y < 8; y++ ) {
-			// 石がある場所
-			if( board2[x][y] == 1 || board2[x][y] == -1 ) {
-				ctx.beginPath();
-				if( board2[x][y] == 1 ) { ctx.fillStyle = '#000000'; }
-				else if( board2[x][y] == -1 ) { ctx.fillStyle = '#ffffff'; }
-				ctx.strokeStyle = '#000000';
-				ctx.arc(x * blockSize + ~~(blockSize * 0.5) + numSize + 0.5, y * blockSize + ~~(blockSize * 0.5) + numSize + 0.5, blockSize / 2 * 0.8, 0, 2 * Math.PI, false);
-				ctx.fill();
-				ctx.stroke();
+		for(j=0;j<8;j++){
+			var s = "#mass" + (j+1) + "" + (i+1);
+			if(board[j][i] == 1){
+				$(s).css("background-color", "#222");
+				// console.log("kuro");
+			}
+			if(board[j][i] == -1){
+				$(s).css("background-color", "#ddd");
+				// console.log("siro");
 			}
 		}
+		console.log(""+board[i][0]+" "+board[i][1]+" "+board[i][2]+" "+board[i][3]+" "+board[i][4]+" "+board[i][5]+" "+board[i][6]+" "+board[i][7]);
 	}
-
-	// ボード脇の色を設定
-	ctx.beginPath();
-	ctx.fillStyle = '#000000';
-	ctx.rect(0, 0, canvasSize + numSize, numSize);
-	ctx.rect(0, 0, numSize, canvasSize + numSize);
-	ctx.fill();
-
-	// ボード脇の文字表示
-	var boardWordVer = new Array('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h');
-	var boardWordHor = new Array('1', '2', '3', '4', '5', '6', '7', '8');
-	for( var i = 0; i < 8; i++ ) {
-		// 文字の表示
-		ctx.beginPath();
-		ctx.font = numSize + "px 'ＭＳ Ｐゴシック', 'Osaka'";
-		ctx.textBaseline = "middle";
-		ctx.textAlign = "center";
-		ctx.fillStyle = '#ffffff';
-		ctx.fillText(boardWordVer[i], (i + 0.5) * blockSize + numSize + 0.5, numSize * 0.5);
-		ctx.fillText(boardWordHor[i], numSize * 0.5, (i + 0.5) * blockSize + numSize + 0.5);
-	}
-
-	// 終了メッセージの表示
-	if( gameEndFlag != 0 ) {
-		// 帯の表示
-		ctx.beginPath();
-		ctx.fillStyle = '#eeeeee';
-		ctx.globalAlpha = 0.7;
-		ctx.rect(0, (canvasSize + numSize - msgSize) / 2, canvasSize + numSize, msgSize);
-		ctx.fill();
-
-		// 文字の表示
-		ctx.globalAlpha = 0.9;
-		ctx.fillStyle = '#000000';
-		ctx.font = msgSize + "px 'ＭＳ Ｐゴシック', 'Osaka'";
-		ctx.textBaseline = "middle";
-		ctx.textAlign = "center";
-		ctx.fillText('B:' + blackStoneNum + ' vs W:' + whiteStoneNum, (canvasSize + numSize) / 2, (canvasSize + numSize) / 2);
-	}
+	stopTime = new Date();
+	console.log("passing time >>>>>>>>");
+	console.log((stopTime-startTime) + "ms");
 }
-
-
 
 function connect_socket() {
   console.log("room.js");
@@ -305,6 +200,7 @@ function connect_socket() {
     // スタートの合図受信
     socket.on('game start', function (message) {
     	// ３秒カウントダウンしてからとか
+		$("#GameStart").val("Game started");
     	gameStartFlag = 1;
     	console.log("game startttttttttt");
     });
@@ -314,7 +210,6 @@ function connect_socket() {
     	console.log('receive put disc, so putStone ...');
     	console.log(message);
     	putStone(message.x, message.y, message.player);
-		draw(ctx, canvas);
     });
 
     socket.on('player num', function (message){
@@ -378,9 +273,9 @@ function connect_socket() {
 
 window.onload = function(){
 	// 初期設定
-	console.log("newGame!!");
 	connect_socket();
 	newGame();
+	console.log("newGame!!");
 }
 
 

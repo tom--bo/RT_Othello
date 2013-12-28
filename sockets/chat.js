@@ -11,6 +11,12 @@ var board = [
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0]
 ];
+var dir = [
+  [-1, -1], [0, -1], [1, -1],
+  [-1, 0],         [1, 0],
+  [-1, 1], [0, 1], [1, 1]
+];
+
 
 // 指定したroomIdに属するクライアントすべてに対しイベントを送信する
 function emitToRoom(roomId, event, data, fn) {
@@ -48,12 +54,6 @@ var socketsOf = {};
 
 // socket.ioのコネクション設定
 exports.onConnection = function (socket) {
-  var dir = [
-    [-1, -1], [0, -1], [1, -1],
-    [-1, 0],         [1, 0],
-    [-1, 1], [0, 1], [1, 1]
-  ];
-
 
   // コネクションが確立されたら'connected'メッセージを送信する
   socket.emit('connected', {});
@@ -150,6 +150,7 @@ exports.onConnection = function (socket) {
   });
 
   socket.on('check put', function (putData){
+    startTime = new Date();
     var x = putData.x;
     var y = putData.y;
     var p = putData.player;
@@ -184,15 +185,17 @@ exports.onConnection = function (socket) {
         }
       }
     }
+    for(i=0;i<8;i++){
+      console.log(""+board[i][0]+" "+board[i][1]+" "+board[i][2]+" "+board[i][3]+" "+board[i][4]+" "+board[i][5]+" "+board[i][6]+" "+board[i][7]);
+    }
     if(canPut){
       console.log('can put disc!!!!!');
       socket.broadcast.emit('put disc', putData);
       socket.emit('put disc', putData);
     }
-    for(i=0;i<8;i++){
-      console.log(board[i][0] + " " + board[i][1] + " " + board[i][2] + " " + board[i][3] + " " + board[i][4] + " " + board[i][5] + " " + board[i][6] + " " + board[i][7]);
-    }
-    console.log('end');
+    stopTime = new Date();
+    console.log("passing time >>>>>>");
+    console.log((stopTime-startTime) + "ms");
     // おけない
   });
 
