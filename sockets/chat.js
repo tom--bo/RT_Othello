@@ -159,44 +159,44 @@ exports.onConnection = function (socket) {
     var canPut = 0;
 
     if(board[y][x] != 0){
-      // おけない
-    }
-    for(i=0;i<8;i++){
-      x0=x+dir[i][0];
-      y0=y+dir[i][1];
-      if(isOut(x0, y0)) continue;
-      else if(board[y0][x0]==0) continue;
-      else if(board[y0][x0]==p) continue;
-      else{ 
-        for(j=1;j<8;j++){
-          x1=x0+dir[i][0]*j;
-          y1=y0+dir[i][1]*j;
-          if(isOut(x1, y1)) break;
-          else if(board[y1][x1] == 0) break;
-          else if(board[y1][x1] == p){
-            canPut = 1;
-            for(k=-1;k<j;k++){
-              x2=x0+dir[i][0]*k;
-              y2=y0+dir[i][1]*k;
-              board[y2][x2] = p;
+      console.log('can\'t put disc.......');
+    }else{
+      for(i=0;i<8;i++){
+        x0=x+dir[i][0];
+        y0=y+dir[i][1];
+        if(isOut(x0, y0)) continue;
+        else if(board[y0][x0]==0) continue;
+        else if(board[y0][x0]==p) continue;
+        else{ 
+          for(j=1;j<8;j++){
+            x1=x0+dir[i][0]*j;
+            y1=y0+dir[i][1]*j;
+            if(isOut(x1, y1)) break;
+            else if(board[y1][x1] == 0) break;
+            else if(board[y1][x1] == p){
+              canPut = 1;
+              for(k=-1;k<j;k++){
+                x2=x0+dir[i][0]*k;
+                y2=y0+dir[i][1]*k;
+                board[y2][x2] = p;
+              }
+              break;
             }
-            break;
           }
         }
       }
+      for(i=0;i<8;i++){
+        console.log(""+board[i][0]+" "+board[i][1]+" "+board[i][2]+" "+board[i][3]+" "+board[i][4]+" "+board[i][5]+" "+board[i][6]+" "+board[i][7]);
+      }
+      if(canPut){
+        console.log('can put disc!!!!!');
+        socket.broadcast.emit('put disc', putData);
+        socket.emit('put disc', putData);
+      }
+      stopTime = new Date();
+      console.log("passing time >>>>>>");
+      console.log((stopTime-startTime) + "ms");
     }
-    for(i=0;i<8;i++){
-      console.log(""+board[i][0]+" "+board[i][1]+" "+board[i][2]+" "+board[i][3]+" "+board[i][4]+" "+board[i][5]+" "+board[i][6]+" "+board[i][7]);
-    }
-    if(canPut){
-      console.log('can put disc!!!!!');
-      socket.broadcast.emit('put disc', putData);
-      socket.emit('put disc', putData);
-    }
-    stopTime = new Date();
-    console.log("passing time >>>>>>");
-    console.log((stopTime-startTime) + "ms");
-    // おけない
   });
 
   // ソケットが切断された場合、ソケット一覧からソケットを削除する

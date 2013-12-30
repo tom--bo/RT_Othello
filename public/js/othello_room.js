@@ -24,6 +24,16 @@ function isOut (x, y){
 
 // 初期化
 function newGame(){
+	// ボードの初期化
+	for(var i = 0; i < 8; i++){
+		board[i] = new Array();
+		for(var j = 0; j < 8; j++){
+			board[i][j] = 0; 
+		}
+	}
+	board[3][3] = board[4][4] = board[3][5] = board[4][2] = 1;
+	board[3][4] = board[4][3] = board[2][3] = board[5][4] = -1;
+
     // バックグラウンドの色
     // 黒
     $("#mass44").css("background-color", "#222");
@@ -44,7 +54,6 @@ function newGame(){
 		console.log(id);
 	});
 
-	// 描画先canvasのidを取得する
 	// スタートボタン押した時の処理
 	document.getElementById('GameStart').onclick = function() {
 	  $("#GameStart").val("waiting opponent");
@@ -53,15 +62,7 @@ function newGame(){
       });
 	}
 
-	// ボードの初期化
-	for(var i = 0; i < 8; i++){
-		board[i] = new Array();
-		for(var j = 0; j < 8; j++){
-			board[i][j] = 0; 
-		}
-	}
-	board[3][3] = board[4][4] = board[3][5] = board[4][2] = 1;
-	board[3][4] = board[4][3] = board[2][3] = board[5][4] = -1;
+
 }
 
 // ゲーム終了
@@ -130,7 +131,6 @@ function putStone(x, y, p){
 }
 
 function connect_socket() {
-  console.log("room.js");
   var messageLogs = {};
 
   // ページロード時の処理
@@ -138,9 +138,7 @@ function connect_socket() {
     // ユーザー名、ルーム名、パスワードを送信
     // url引数で指定されたSocket.IOサーバーへの接続。
 
-// ローカルテスト用
-    // socket = io.connect('http://localhost');
-// 本番用
+    // io.connectに引数を取らないリスク？
     socket = io.connect();
 
     // メッセージハンドラの定義
@@ -148,32 +146,26 @@ function connect_socket() {
     socket.on('connected', function(data) {
       socket.emit('check credential', minichat);
     });
-
     // 認証成功
     socket.on('credential ok', function(data) {
       socket.emit('request log', {});
     });
-
     // 認証失敗：ルーム名/パスワードの不一致
     socket.on('invalid credential', function(data) {
       authRetry('ルーム名/パスワードが不正です');
     });
-
     // 認証失敗：同名のルームがすでに存在
     socket.on('room exists', function(data) {
       authRetry('同名のルームがすでに存在します');
     });
-
     // 認証失敗：ルームに同名のユーザーが存在
     socket.on('userName exists', function(data) {
       authRetry('その名前はすでに使われています');
     });
-
     // チャットログの送信
     socket.on('request log', function(data, callback) {
       callback(messageLogs);
     });
-
     // チャットログの更新
     socket.on('update log', function(log) {
       Object.keys(log).forEach(function (key) {
@@ -181,7 +173,6 @@ function connect_socket() {
       });
       updateMessage();
     });
-
     // チャットルームへのメンバー追加
     socket.on('update members', function (members) {
       $('#members').empty();
@@ -190,7 +181,6 @@ function connect_socket() {
         $('#members').append(html);
       }
     });
-
     // チャットメッセージ受信
     socket.on('push message', function (message) {
       messageLogs[message.id] = message;
@@ -204,14 +194,13 @@ function connect_socket() {
     	gameStartFlag = 1;
     	console.log("game startttttttttt");
     });
-
     // サーバから配置のデータもらう。
     socket.on('put disc', function (message){
     	console.log('receive put disc, so putStone ...');
     	console.log(message);
     	putStone(message.x, message.y, message.player);
     });
-
+    // ゲームスタート前に自分のプレイヤNo.をもらう
     socket.on('player num', function (message){
     	console.log(message);
     	putData.player = message;
@@ -229,7 +218,6 @@ function connect_socket() {
         $('#message').val('');
       });
     });
-
     $('#credential-dialog-form').on('submit', function() {
       $('#credentialDialog').modal('hide');
       socket.emit('hash password', $('#new-password').val(), function (hashedPassword) {
