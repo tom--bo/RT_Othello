@@ -16,6 +16,7 @@ var dir = [
 		[-1, 1], [0, 1], [1, 1]
 ];
 var socket;
+var time_count = 4;
 
 function isOut (x, y){
   if(x<0 || y<0 || x>8 || y>8) return 1;
@@ -55,11 +56,12 @@ function newGame(){
 	});
 
 	// スタートボタン押した時の処理
-	document.getElementById('GameStart').onclick = function() {
-	  $("#GameStart").val("waiting opponent");
-        socket.emit('startPushed', function () {
-      	console.log("startPushed");
-      });
+	document.getElementById('ImReady').onclick = function() {
+	  $("#ImReady").text("waiting opponent");
+    $("#ImReady").addClass('disabled');
+    socket.emit('startPushed', function () {
+    	console.log("startPushed");
+    });
 	}
 
 
@@ -71,6 +73,24 @@ function gameOver() {
 	gameEndFlag = 1;
 	countDisk();
 }
+
+function countDown(){
+  if(time_count == 0){
+    $("#ImReady").text("Game started");
+    $("#timetostart").text("Start!!!");
+    setTimeout('countDown()', 3000);
+    time_count--;
+  }else if(time_count == -1){
+    $("#timetostart").text(" ");
+  }else{
+    str_time = "" + time_count;
+    $('#timetostart').text(str_time);
+    console.log($)
+    time_count--;
+    setTimeout('countDown()', 1000);
+  }
+}
+
 function countDisk(){
 	blackStoneNum = 0;
 	whiteStoneNum = 0;
@@ -189,10 +209,11 @@ function connect_socket() {
 
     // スタートの合図受信
     socket.on('game start', function (message) {
-    	// ３秒カウントダウンしてからとか
-		$("#GameStart").val("Game started");
-    	gameStartFlag = 1;
-    	console.log("game startttttttttt");
+      if(putData.player == 1) $('#client-color').text('Color: Black');
+      else $('#client-color').text('Color: White');
+      $("#ImReady").text("Count down started");
+      setTimeout('countDown()', 1000);
+      gameStartFlag = 1;
     });
     // サーバから配置のデータもらう。
     socket.on('put disc', function (message){

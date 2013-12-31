@@ -73,6 +73,7 @@ exports.onConnection = function (socket) {
 
   // 認証情報を確認する
   socket.on('check credential', function (client) {
+
     // クライアントはconnectedメッセージを受信したら、
     // minichatオブジェクトを引数にこのメッセージを送信する
 
@@ -103,6 +104,13 @@ exports.onConnection = function (socket) {
     // ソケットにクライアントの情報をセットする
     socket.set('client', client, function () {
       socketsOf[client.roomId][client.userName] = socket;
+      //- socketsOfの内容
+      console.log('socketsOfの内容');
+      console.log(socketsOf);
+      console.log('socketsOfの内容2');
+      console.log(socketsOf[client.roomId]);
+      console.log('socketsOfの内容3');
+      console.log(socketsOf[client.roomId][client.userName]);
       if (client.userName) {
         console.log('user ' + client.userName + '@' + client.roomId + ' connected');
       }
@@ -147,6 +155,7 @@ exports.onConnection = function (socket) {
       socket.broadcast.emit('game start', {});
       socket.emit('game start', {});
     }
+    console.log("socketsOf");
   });
 
   socket.on('check put', function (putData){
