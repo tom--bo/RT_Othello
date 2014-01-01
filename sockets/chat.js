@@ -6,19 +6,6 @@ var Dir = [
   [-1, 0],         [1, 0],
   [-1, 1], [0, 1], [1, 1]
 ];
-var baoard = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0,-1, 0, 0, 0, 0],
-  [0, 0, 0, 1,-1, 1, 0, 0],
-  [0, 0, 1,-1, 1, 0, 0, 0],
-  [0, 0, 0, 0,-1, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0]
-];
-var palayer_num = 0;
-var palayer_no = 0;
-var fainish_flag = 0;
 
 // 指定したroomIdに属するクライアントすべてに対しイベントを送信する
 function emitToRoom(roomId, event, data, fn) {
@@ -144,7 +131,7 @@ exports.onConnection = function (socket) {
           [0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0]
         ],
-        player_num: 0,
+        player_num: 1,
         player_no: 0,
         finish_flag: 0
       }
@@ -162,6 +149,12 @@ exports.onConnection = function (socket) {
         socket.emit('userName exists', {});
         return;
       }
+      // すでにルームがいっぱいでないか確認
+      if (RoomData[client.roomId].player_num >= 2){
+        socket.emit('room full', {});
+        return;
+      }
+      RoomData[client.roomId].player_num++;
     }
 
     // ソケットにクライアントの情報をセットする
@@ -198,18 +191,15 @@ exports.onConnection = function (socket) {
         return;
       }
       console.log('startPushed');
-      if(RoomData[client.roomId].player_num == 0){
-        RoomData[client.roomId].player_num++;
+      if(RoomData[client.roomId].player_no == 0){
         RoomData[client.roomId].player_no = 1;
         socket.emit('player num', RoomData[client.roomId].player_no);
-      }else if(RoomData[client.roomId].player_num == 1){
-        RoomData[client.roomId].player_num++;
+      }else if(RoomData[client.roomId].player_no == 1){
         RoomData[client.roomId].player_no = -1;
         socket.emit('player num', RoomData[client.roomId].player_no);
       }
-      if(RoomData[client.roomId].player_num == 2){
+      if(RoomData[client.roomId].player_no == -1){
         emitToRoom(client.roomId, 'game start');
-        socket.emit('game start', {});
       }
     });
   });

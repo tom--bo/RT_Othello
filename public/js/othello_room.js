@@ -83,7 +83,6 @@ function countDown(){
   }else{
     str_time = "" + time_count;
     $('#timetostart').text(str_time);
-    console.log($)
     time_count--;
     setTimeout('countDown()', 1000);
   }
@@ -158,6 +157,10 @@ function connect_socket() {
     // 認証失敗：ルームに同名のユーザーが存在
     socket.on('userName exists', function(data) {
       authRetry('その名前はすでに使われています');
+    });
+    // 認証失敗：ルームに２人のユーザーが存在
+    socket.on('room full', function(data) {
+      authRetry('ルームにはすでに２人のプレイヤーがいます');
     });
     // チャットログの送信
     socket.on('request log', function(data, callback) {
