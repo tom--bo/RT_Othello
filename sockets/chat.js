@@ -200,6 +200,7 @@ exports.onConnection = function (socket) {
       }
       if(RoomData[client.roomId].player_no == -1){
         emitToRoom(client.roomId, 'game start');
+        RoomData[client.roomId].player_no = 0;
       }
     });
   });
@@ -227,6 +228,40 @@ exports.onConnection = function (socket) {
       if(RoomData[client.roomId].finish_flag == 2){
         // socket.broadcast.emit('Game finished', client.RoomData[client.roomId].board);
         emitToRoom(client.roomId, 'Game finished', RoomData[client.roomId].board);
+        RoomData[client.roomId].finish_flag = 0;
+      }
+    });
+  });
+  socket.on('reset request', function (){
+    socket.get('client', function (err, client) {
+      if (err || !client) {
+        return;
+      }
+      console.log('startPushed');
+      if(RoomData[client.roomId].player_no == 0){
+        RoomData[client.roomId].player_no = 1;
+        socket.emit('player num', RoomData[client.roomId].player_no);
+      }else if(RoomData[client.roomId].player_no == 1){
+        RoomData[client.roomId].player_no = -1;
+        socket.emit('player num', RoomData[client.roomId].player_no);
+      }
+      if(RoomData[client.roomId].player_no == -1){
+        var i=0, j=0;
+        for(i=0;i<8;i++){
+          for(j=0;j<8;j++){
+            RoomData[client.roomId].board[i][j] = 0;
+          }
+        }
+        RoomData[client.roomId].board[3][3] = 1;
+        RoomData[client.roomId].board[4][4] = 1;
+        RoomData[client.roomId].board[3][5] = 1;
+        RoomData[client.roomId].board[4][2] = 1;
+        RoomData[client.roomId].board[3][4] = -1;
+        RoomData[client.roomId].board[4][3] = -1;
+        RoomData[client.roomId].board[2][3] = -1;
+        RoomData[client.roomId].board[5][4] = -1;
+        emitToRoom(client.roomId, 'game start');
+        RoomData[client.roomId].player_no = 0;
       }
     });
   });
