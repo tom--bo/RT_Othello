@@ -187,7 +187,7 @@ exports.onConnection = function (socket) {
     }
     message.date = _formatDate(new Date());
     shasum.update('-' + message.roomId);
-    message[client.roomId] = (new Date()).getTime() + '-' + shasum.digest('hex');
+    message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
     emitToRoom(message.roomId, 'push message', message);
 
   });
@@ -266,9 +266,8 @@ exports.onConnection = function (socket) {
         var shasum = crypto.createHash('sha1')
         message.date = _formatDate(new Date());
         shasum.update('-' + message.roomId);
-        message[client.roomId] = (new Date()).getTime() + '-' + shasum.digest('hex');
+        message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
         emitToRoom(message.roomId, 'push message', message);
-
       }
     });
   });
@@ -280,7 +279,7 @@ exports.onConnection = function (socket) {
     var shasum = crypto.createHash('sha1')
     message.date = _formatDate(new Date());
     shasum.update(message.userName + '-' + message.roomId);
-    message[client.roomId] = (new Date()).getTime() + '-' + shasum.digest('hex');
+    message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
     emitToRoom(message.roomId, 'push message', message);
     // クライアント側のコールバックを実行する
     fn();
