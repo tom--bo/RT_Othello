@@ -7,7 +7,7 @@ block content
       password: '#{room.password}',
       userName: '#{user.name}',
       roomId: '#{room.name}#{room.password}',
-      mode: '#{mode}'
+      mode: '#{mode}', 
     };
 
   //- ルーム名
@@ -30,7 +30,7 @@ block content
               img(src='/img/100mass_green.png', alt='')
 
     button#ImReady.btn.btn-default(type='button', name='ImReady') I'm ready 
-    p#client-color 
+    h2#client-color 
     h2#timetostart 
 
 
@@ -85,5 +85,5 @@ block content
 
   hr
   footer
-    p RT_othello 0.2
+    p RT_othello 1.0
 

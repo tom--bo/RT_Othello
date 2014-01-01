@@ -1,22 +1,24 @@
 var crypto = require('crypto');
-var player_num = 0;
-var player_no = 0;
-var board = [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0,-1, 0, 0, 0, 0],
-    [0, 0, 0, 1,-1, 1, 0, 0],
-    [0, 0, 1,-1, 1, 0, 0, 0],
-    [0, 0, 0, 0,-1, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0]
-];
-var dir = [
+var RoomData = {};
+
+var Dir = [
   [-1, -1], [0, -1], [1, -1],
   [-1, 0],         [1, 0],
   [-1, 1], [0, 1], [1, 1]
 ];
-
+var baoard = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0,-1, 0, 0, 0, 0],
+  [0, 0, 0, 1,-1, 1, 0, 0],
+  [0, 0, 1,-1, 1, 0, 0, 0],
+  [0, 0, 0, 0,-1, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0]
+];
+var palayer_num = 0;
+var palayer_no = 0;
+var fainish_flag = 0;
 
 // 指定したroomIdに属するクライアントすべてに対しイベントを送信する
 function emitToRoom(roomId, event, data, fn) {
@@ -27,7 +29,51 @@ function emitToRoom(roomId, event, data, fn) {
   Object.keys(sockets).forEach(function (key) {
     sockets[key].emit(event, data, fn);
   });
-};
+}
+function putStone(client, putData){
+  var x = putData.x;
+  var y = putData.y;
+  var p = putData.player;
+  var i=0, j=0, k=0;
+  var x0, y0, x1, y1;
+  var canPut = 0;
+
+  if(RoomData[client.roomId].board[y][x] != 0){
+    console.log('can\'t put disc.......');
+  }else{
+    for(i=0;i<8;i++){
+      x0=x+Dir[i][0];
+      y0=y+Dir[i][1];
+      if(isOut(x0, y0)) continue;
+      else if(RoomData[client.roomId].board[y0][x0]==0) continue;
+      else if(RoomData[client.roomId].board[y0][x0]==p) continue;
+      else{ 
+        for(j=1;j<8;j++){
+          x1=x0+Dir[i][0]*j;
+          y1=y0+Dir[i][1]*j;
+          if(isOut(x1, y1)) break;
+          else if(RoomData[client.roomId].board[y1][x1] == 0) break;
+          else if(RoomData[client.roomId].board[y1][x1] == p){
+            canPut = 1;
+            for(k=-1;k<j;k++){
+              x2=x0+Dir[i][0]*k;
+              y2=y0+Dir[i][1]*k;
+              RoomData[client.roomId].board[y2][x2] = p;
+            }
+            break;
+          }
+        }
+      }
+    }
+    // for(i=0;i<8;i++){
+      // console.log(""+RoomData[client.roomId].board[i][0]+" "+RoomData[client.roomId].board[i][1]+" "+RoomData[client.roomId].board[i][2]+" "+RoomData[client.roomId].board[i][3]+" "+RoomData[client.roomId].board[i][4]+" "+RoomData[client.roomId].board[i][5]+" "+RoomData[client.roomId].board[i][6]+" "+RoomData[client.roomId].board[i][7]);
+    // }
+    if(canPut){
+      console.log('can put disc!!!!!');
+      emitToRoom(client.roomId, 'put disc', RoomData[client.roomId].board);
+    }
+  }
+}
 
 function isOut (x, y){
   if(x<0 || y<0 || x>7 || y>7) return 1;
@@ -85,6 +131,23 @@ exports.onConnection = function (socket) {
         socket.emit('room exists', {});
         return;
       }
+
+      RoomData[client.roomId] = {};
+      RoomData[client.roomId] = {
+        board: [
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0,-1, 0, 0, 0, 0],
+          [0, 0, 0, 1,-1, 1, 0, 0],
+          [0, 0, 1,-1, 1, 0, 0, 0],
+          [0, 0, 0, 0,-1, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0]
+        ],
+        player_num: 0,
+        player_no: 0,
+        finish_flag: 0
+      }
       socketsOf[client.roomId] = {};
     }
 
@@ -104,13 +167,6 @@ exports.onConnection = function (socket) {
     // ソケットにクライアントの情報をセットする
     socket.set('client', client, function () {
       socketsOf[client.roomId][client.userName] = socket;
-      //- socketsOfの内容
-      console.log('socketsOfの内容');
-      console.log(socketsOf);
-      console.log('socketsOfの内容2');
-      console.log(socketsOf[client.roomId]);
-      console.log('socketsOfの内容3');
-      console.log(socketsOf[client.roomId][client.userName]);
       if (client.userName) {
         console.log('user ' + client.userName + '@' + client.roomId + ' connected');
       }
@@ -131,81 +187,58 @@ exports.onConnection = function (socket) {
     }
     message.date = _formatDate(new Date());
     shasum.update('-' + message.roomId);
-    message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
+    message[client.roomId] = (new Date()).getTime() + '-' + shasum.digest('hex');
     emitToRoom(message.roomId, 'push message', message);
 
   });
 
   socket.on('startPushed', function (){
-    console.log("startPushed!!!!!!!");
-    if(player_num == 0){
-      console.log('player_num');
-      console.log(player_num);
-      player_num++;
-      player_no = 1;
-      socket.emit('player num', player_no);
-    }else if(player_num == 1){
-      console.log('player_num');
-      console.log(player_num);
-      player_num++;
-      player_no = -1;
-      socket.emit('player num', player_no);
-    }
-    if(player_num == 2){
-      socket.broadcast.emit('game start', {});
-      socket.emit('game start', {});
-    }
-    console.log("socketsOf");
+    socket.get('client', function (err, client){
+      if (err || !client) {
+        return;
+      }
+      console.log('startPushed');
+      if(RoomData[client.roomId].player_num == 0){
+        RoomData[client.roomId].player_num++;
+        RoomData[client.roomId].player_no = 1;
+        socket.emit('player num', RoomData[client.roomId].player_no);
+      }else if(RoomData[client.roomId].player_num == 1){
+        RoomData[client.roomId].player_num++;
+        RoomData[client.roomId].player_no = -1;
+        socket.emit('player num', RoomData[client.roomId].player_no);
+      }
+      if(RoomData[client.roomId].player_num == 2){
+        emitToRoom(client.roomId, 'game start');
+        socket.emit('game start', {});
+      }
+    });
   });
 
   socket.on('check put', function (putData){
-    startTime = new Date();
-    var x = putData.x;
-    var y = putData.y;
-    var p = putData.player;
-    var i=0, j=0, k=0;
-    var x0, y0, x1, y1;
-    var canPut = 0;
+    socket.get('client', function (err, client){
+      if (err || !client) {
+        return;
+      }
+      startTime = new Date();
+      putStone(client, putData);
 
-    if(board[y][x] != 0){
-      console.log('can\'t put disc.......');
-    }else{
-      for(i=0;i<8;i++){
-        x0=x+dir[i][0];
-        y0=y+dir[i][1];
-        if(isOut(x0, y0)) continue;
-        else if(board[y0][x0]==0) continue;
-        else if(board[y0][x0]==p) continue;
-        else{ 
-          for(j=1;j<8;j++){
-            x1=x0+dir[i][0]*j;
-            y1=y0+dir[i][1]*j;
-            if(isOut(x1, y1)) break;
-            else if(board[y1][x1] == 0) break;
-            else if(board[y1][x1] == p){
-              canPut = 1;
-              for(k=-1;k<j;k++){
-                x2=x0+dir[i][0]*k;
-                y2=y0+dir[i][1]*k;
-                board[y2][x2] = p;
-              }
-              break;
-            }
-          }
-        }
-      }
-      for(i=0;i<8;i++){
-        console.log(""+board[i][0]+" "+board[i][1]+" "+board[i][2]+" "+board[i][3]+" "+board[i][4]+" "+board[i][5]+" "+board[i][6]+" "+board[i][7]);
-      }
-      if(canPut){
-        console.log('can put disc!!!!!');
-        socket.broadcast.emit('put disc', putData);
-        socket.emit('put disc', putData);
-      }
       stopTime = new Date();
       console.log("passing time >>>>>>");
       console.log((stopTime-startTime) + "ms");
-    }
+    });
+  });
+
+  socket.on('Finish request', function (){
+    socket.get('client', function (err, client){
+      if (err || !client) {
+        return;
+      }
+      RoomData[client.roomId].finish_flag++;
+      if(RoomData[client.roomId].finish_flag == 2){
+        // socket.broadcast.emit('Game finished', client.RoomData[client.roomId].board);
+        emitToRoom(client.roomId, 'Game finished', RoomData[client.roomId].board);
+      }
+    });
   });
 
   // ソケットが切断された場合、ソケット一覧からソケットを削除する
@@ -233,7 +266,7 @@ exports.onConnection = function (socket) {
         var shasum = crypto.createHash('sha1')
         message.date = _formatDate(new Date());
         shasum.update('-' + message.roomId);
-        message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
+        message[client.roomId] = (new Date()).getTime() + '-' + shasum.digest('hex');
         emitToRoom(message.roomId, 'push message', message);
 
       }
@@ -247,7 +280,7 @@ exports.onConnection = function (socket) {
     var shasum = crypto.createHash('sha1')
     message.date = _formatDate(new Date());
     shasum.update(message.userName + '-' + message.roomId);
-    message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
+    message[client.roomId] = (new Date()).getTime() + '-' + shasum.digest('hex');
     emitToRoom(message.roomId, 'push message', message);
     // クライアント側のコールバックを実行する
     fn();

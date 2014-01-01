@@ -1,7 +1,6 @@
 //--------グローバル変数の定義----------
 var msgSize = 90;					// メッセージサイズ
 var gameStartFlag = 0;
-var gameEndFlag = 0;					// ゲーム進行フラグ
 var board = new Array();					// ボード配列
 var blackStoneNum = 0;					// 黒石の数
 var whiteStoneNum = 0;					// 白石の数
@@ -16,7 +15,7 @@ var dir = [
 		[-1, 1], [0, 1], [1, 1]
 ];
 var socket;
-var time_count = 4;
+var time_count = 3;
 
 function isOut (x, y){
   if(x<0 || y<0 || x>8 || y>8) return 1;
@@ -35,53 +34,52 @@ function newGame(){
 	board[3][3] = board[4][4] = board[3][5] = board[4][2] = 1;
 	board[3][4] = board[4][3] = board[2][3] = board[5][4] = -1;
 
-    // バックグラウンドの色
-    // 黒
-    $("#mass44").css("background-color", "#222");
-    $("#mass55").css("background-color", "#222");
-    $("#mass46").css("background-color", "#222");
-    $("#mass53").css("background-color", "#222");
-    // 白
-    $("#mass34").css("background-color", "#ddd");
-    $("#mass45").css("background-color", "#ddd");
-    $("#mass54").css("background-color", "#ddd");
-    $("#mass65").css("background-color", "#ddd");
+  // バックグラウンドの色
+  // 黒
+  $("#mass44").css("background-color", "#222");
+  $("#mass55").css("background-color", "#222");
+  $("#mass46").css("background-color", "#222");
+  $("#mass53").css("background-color", "#222");
+  // 白
+  $("#mass34").css("background-color", "#ddd");
+  $("#mass45").css("background-color", "#ddd");
+  $("#mass54").css("background-color", "#ddd");
+  $("#mass65").css("background-color", "#ddd");
 
-    $(".mass").click(function() {
-		id = $(this).attr("id");
-		putData.x = parseInt(id.charAt(5)) - 1;
-		putData.y = parseInt(id.charAt(4)) - 1;
-		socket.emit('check put', putData);
-		console.log(id);
-	});
+  $(".mass").click(function() {
+    if(!gameStartFlag) return;
+  	id = $(this).attr("id");
+  	putData.x = parseInt(id.charAt(5)) - 1;
+  	putData.y = parseInt(id.charAt(4)) - 1;
+  	socket.emit('check put', putData);
+  });
 
 	// スタートボタン押した時の処理
 	document.getElementById('ImReady').onclick = function() {
-	  $("#ImReady").text("waiting opponent");
-    $("#ImReady").addClass('disabled');
-    socket.emit('startPushed', function () {
-    	console.log("startPushed");
-    });
+    // ゲームが始まっていなければ
+    if(!gameStartFlag){
+      $("#ImReady").text("waiting opponent");
+      $("#ImReady").addClass('disabled');
+      socket.emit('startPushed', function () {
+        console.log("startPushed");
+      });
+    }else{ // ゲーム開始後
+      $("#ImReady").addClass('disabled');
+      socket.emit('Finish request');
+    }
 	}
-
-
-}
-
-// ゲーム終了
-function gameOver() {
-	// ゲームを終了する
-	gameEndFlag = 1;
-	countDisk();
 }
 
 function countDown(){
   if(time_count == 0){
-    $("#ImReady").text("Game started");
+    gameStartFlag = 1;
+    $("#ImReady").text("Game finish");
     $("#timetostart").text("Start!!!");
     setTimeout('countDown()', 3000);
     time_count--;
   }else if(time_count == -1){
-    $("#timetostart").text(" ");
+    $("#timetostart").text("B: " + blackStoneNum + " - W: " + whiteStoneNum);
+    $("#ImReady").removeClass('disabled');
   }else{
     str_time = "" + time_count;
     $('#timetostart').text(str_time);
@@ -103,48 +101,26 @@ function countDisk(){
 }
 
 // 石を置いてひっくり返す
-function putStone(x, y, p){
+function putStone(message){
 	startTime = new Date();
-	var i=0, j=0, k=0;
-	var x0, y0, x1, y1, x2, y2;
-	if(board[y][x] != 0) return 0;
-	for(;i<8;i++){
-		x0=x+dir[i][0];
-		y0=y+dir[i][1];
-		if(isOut(x0, y0)) continue;
-		else if(board[y0][x0] == 0) continue;
-		else if(board[y0][x0] == p) continue;
-		else{ 
-			for(j=1;j<7;j++){
-				x1=x0+dir[i][0]*j;
-				y1=y0+dir[i][1]*j;
-				if(isOut(x1, y1)) break;
-				else if(board[y1][x1] == 0) break;
-				else if(board[y1][x1] == p){
-					for(k=-1;k<j;k++){
-						x2=x0+dir[i][0]*k;
-						y2=y0+dir[i][1]*k;
-						board[y2][x2] = p;
-					}
-					break;
-				}
-			}
-		}
-	}
+  blackStoneNum = 0;
+  whiteStoneNum = 0;
+	var i=0, j=0;
 	for(i=0;i<8;i++){
 		for(j=0;j<8;j++){
-			var s = "#mass" + (j+1) + "" + (i+1);
-			if(board[j][i] == 1){
-				$(s).css("background-color", "#222");
-				// console.log("kuro");
-			}
-			if(board[j][i] == -1){
-				$(s).css("background-color", "#ddd");
-				// console.log("siro");
-			}
+      board[i][j] = message[i][j];
+			var s = "#mass" + (i+1) + "" + (j+1);
+			if(board[i][j] == 1){
+        $(s).css("background-color", "#222");
+        blackStoneNum++;
+      } 
+			if(board[i][j] == -1){
+        $(s).css("background-color", "#ddd");
+        whiteStoneNum++;
+      }
 		}
-		console.log(""+board[i][0]+" "+board[i][1]+" "+board[i][2]+" "+board[i][3]+" "+board[i][4]+" "+board[i][5]+" "+board[i][6]+" "+board[i][7]);
 	}
+  $("#timetostart").text("B: " + blackStoneNum + " - W: " + whiteStoneNum);
 	stopTime = new Date();
 	console.log("passing time >>>>>>>>");
 	console.log((stopTime-startTime) + "ms");
@@ -164,6 +140,7 @@ function connect_socket() {
     // メッセージハンドラの定義
     // サーバーへの接続完了
     socket.on('connected', function(data) {
+      console.log(minichat);
       socket.emit('check credential', minichat);
     });
     // 認証成功
@@ -213,18 +190,28 @@ function connect_socket() {
       else $('#client-color').text('Color: White');
       $("#ImReady").text("Count down started");
       setTimeout('countDown()', 1000);
-      gameStartFlag = 1;
     });
+
     // サーバから配置のデータもらう。
     socket.on('put disc', function (message){
     	console.log('receive put disc, so putStone ...');
     	console.log(message);
-    	putStone(message.x, message.y, message.player);
+    	putStone(message);
     });
+
     // ゲームスタート前に自分のプレイヤNo.をもらう
     socket.on('player num', function (message){
     	console.log(message);
     	putData.player = message;
+    });
+
+    // 終了手続き
+    socket.on('Game finished', function (message){
+      putStone(message);
+      var judge_score = (blackStoneNum - whiteStoneNum) * putData.player;
+      if(judge_score > 0) $('#client-color').text('Win!! (=ﾟωﾟ)ﾉ');
+      else if(judge_score < 0) $('#client-color').text('Lose... (゜∀。)');
+      else $('#client-color').text('Draw (っ･ω･)っ');
     });
 
     // チャットメッセージ送信
@@ -279,12 +266,9 @@ function connect_socket() {
   }
 }
 
-
 window.onload = function(){
 	// 初期設定
 	connect_socket();
 	newGame();
 	console.log("newGame!!");
 }
-
-
