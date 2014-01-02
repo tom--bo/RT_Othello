@@ -272,6 +272,7 @@ exports.onConnection = function (socket) {
       if (err || !client) {
         return;
       }
+      RoomData[client.roomId].player_num--;
       var sockets = socketsOf[client.roomId];
       if(sockets !== undefined) {
         delete sockets[client.userName];

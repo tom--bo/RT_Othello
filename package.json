@@ -1,5 +1,5 @@
 {
-  "name": "application-name",
+  "name": "REAL_TIME_Othello",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -11,6 +11,8 @@
     "socket.io": "*"
   },
   "engines": {
+    "subdomain": "real_time_othello",
+    "version": "1.4",
 	  "node": "0.8.19",
 	  "npm": "1.2.10"
   }
