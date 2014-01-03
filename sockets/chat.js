@@ -35,7 +35,7 @@ function putStone(client, putData){
       else if(RoomData[client.roomId].board[y0][x0]==0) continue;
       else if(RoomData[client.roomId].board[y0][x0]==p) continue;
       else{ 
-        for(j=1;j<8;j++){
+        for(j=1;j<12;j++){
           x1=x0+Dir[i][0]*j;
           y1=y0+Dir[i][1]*j;
           if(isOut(x1, y1)) break;
@@ -52,8 +52,8 @@ function putStone(client, putData){
         }
       }
     }
-    // for(i=0;i<8;i++){
-      // console.log(""+RoomData[client.roomId].board[i][0]+" "+RoomData[client.roomId].board[i][1]+" "+RoomData[client.roomId].board[i][2]+" "+RoomData[client.roomId].board[i][3]+" "+RoomData[client.roomId].board[i][4]+" "+RoomData[client.roomId].board[i][5]+" "+RoomData[client.roomId].board[i][6]+" "+RoomData[client.roomId].board[i][7]);
+    // for(i=0;i<12;i++){
+      // console.log(""+RoomData[client.roomId].board[i][0]+" "+RoomData[client.roomId].board[i][1]+" "+RoomData[client.roomId].board[i][2]+" "+RoomData[client.roomId].board[i][3]+" "+RoomData[client.roomId].board[i][4]+" "+RoomData[client.roomId].board[i][5]+" "+RoomData[client.roomId].board[i][6]+" "+RoomData[client.roomId].board[i][7]+" "+RoomData[client.roomId].board[i][8]+" "+RoomData[client.roomId].board[i][9]+" "+RoomData[client.roomId].board[i][10]+" "+RoomData[client.roomId].board[i][11]);
     // }
     if(canPut){
       console.log('can put disc!!!!!');
@@ -63,7 +63,7 @@ function putStone(client, putData){
 }
 
 function isOut (x, y){
-  if(x<0 || y<0 || x>7 || y>7) return 1;
+  if(x<0 || y<0 || x>11 || y>11) return 1;
   else return 0;
 }
 
@@ -122,14 +122,20 @@ exports.onConnection = function (socket) {
       RoomData[client.roomId] = {};
       RoomData[client.roomId] = {
         board: [
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0,-1, 0, 0, 0, 0],
-          [0, 0, 0, 1,-1, 1, 0, 0],
-          [0, 0, 1,-1, 1, 0, 0, 0],
-          [0, 0, 0, 0,-1, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0]
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+
+          [0, 0, 0, 0, 1, 2, 3, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 3, 1, 0, 2, 0, 0, 0, 0],
+          [0, 0, 0, 0, 2, 0, 3, 1, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 1, 2, 3, 0, 0, 0, 0],
+
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ],
         player_num: 1,
         player_no: 0,
@@ -150,7 +156,7 @@ exports.onConnection = function (socket) {
         return;
       }
       // すでにルームがいっぱいでないか確認
-      if (RoomData[client.roomId].player_num >= 2){
+      if (RoomData[client.roomId].player_num >= 3){
         socket.emit('room full', {});
         return;
       }
@@ -160,9 +166,9 @@ exports.onConnection = function (socket) {
     // ソケットにクライアントの情報をセットする
     socket.set('client', client, function () {
       socketsOf[client.roomId][client.userName] = socket;
-      if (client.userName) {
-        console.log('user ' + client.userName + '@' + client.roomId + ' connected');
-      }
+      // if (client.userName) {
+        // console.log('user ' + client.userName + '@' + client.roomId + ' connected');
+      // }
     });
 
     // 認証成功
@@ -195,10 +201,13 @@ exports.onConnection = function (socket) {
         RoomData[client.roomId].player_no = 1;
         socket.emit('player num', RoomData[client.roomId].player_no);
       }else if(RoomData[client.roomId].player_no == 1){
-        RoomData[client.roomId].player_no = -1;
+        RoomData[client.roomId].player_no = 2;
+        socket.emit('player num', RoomData[client.roomId].player_no);
+      }else if(RoomData[client.roomId].player_no == 2){
+        RoomData[client.roomId].player_no = 3;
         socket.emit('player num', RoomData[client.roomId].player_no);
       }
-      if(RoomData[client.roomId].player_no == -1){
+      if(RoomData[client.roomId].player_no == 3){
         emitToRoom(client.roomId, 'game start');
         RoomData[client.roomId].player_no = 0;
       }
@@ -225,7 +234,7 @@ exports.onConnection = function (socket) {
         return;
       }
       RoomData[client.roomId].finish_flag++;
-      if(RoomData[client.roomId].finish_flag == 2){
+      if(RoomData[client.roomId].finish_flag == 3){
         // socket.broadcast.emit('Game finished', client.RoomData[client.roomId].board);
         emitToRoom(client.roomId, 'Game finished', RoomData[client.roomId].board);
         RoomData[client.roomId].finish_flag = 0;
@@ -242,24 +251,31 @@ exports.onConnection = function (socket) {
         RoomData[client.roomId].player_no = 1;
         socket.emit('player num', RoomData[client.roomId].player_no);
       }else if(RoomData[client.roomId].player_no == 1){
-        RoomData[client.roomId].player_no = -1;
+        RoomData[client.roomId].player_no = 2;
+        socket.emit('player num', RoomData[client.roomId].player_no);
+      }else if(RoomData[client.roomId].player_no == 2){
+        RoomData[client.roomId].player_no = 3;
         socket.emit('player num', RoomData[client.roomId].player_no);
       }
-      if(RoomData[client.roomId].player_no == -1){
+      if(RoomData[client.roomId].player_no == 3){
         var i=0, j=0;
-        for(i=0;i<8;i++){
-          for(j=0;j<8;j++){
+        for(i=0;i<12;i++){
+          for(j=0;j<12;j++){
             RoomData[client.roomId].board[i][j] = 0;
           }
         }
-        RoomData[client.roomId].board[3][3] = 1;
         RoomData[client.roomId].board[4][4] = 1;
-        RoomData[client.roomId].board[3][5] = 1;
-        RoomData[client.roomId].board[4][2] = 1;
-        RoomData[client.roomId].board[3][4] = -1;
-        RoomData[client.roomId].board[4][3] = -1;
-        RoomData[client.roomId].board[2][3] = -1;
-        RoomData[client.roomId].board[5][4] = -1;
+        RoomData[client.roomId].board[5][5] = 1;
+        RoomData[client.roomId].board[6][7] = 1;
+        RoomData[client.roomId].board[7][5] = 1;
+        RoomData[client.roomId].board[4][5] = 2;
+        RoomData[client.roomId].board[5][7] = 2;
+        RoomData[client.roomId].board[6][4] = 2;
+        RoomData[client.roomId].board[7][6] = 2;
+        RoomData[client.roomId].board[4][6] = 3;
+        RoomData[client.roomId].board[5][4] = 3;
+        RoomData[client.roomId].board[6][6] = 3;
+        RoomData[client.roomId].board[7][7] = 3;
         emitToRoom(client.roomId, 'game start');
         RoomData[client.roomId].player_no = 0;
       }
@@ -300,8 +316,6 @@ exports.onConnection = function (socket) {
 
   // クライアントは'say'メッセージとともにチャットメッセージを送信する
   socket.on('say', function (message, fn) {
-    console.log('receive message');
-
     var shasum = crypto.createHash('sha1')
     message.date = _formatDate(new Date());
     shasum.update(message.userName + '-' + message.roomId);
