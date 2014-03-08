@@ -6,6 +6,8 @@ var Dir = [
   [-1, 0],         [1, 0],
   [-1, 1], [0, 1], [1, 1]
 ];
+var dirNum = 8;
+var boardSize = 10;
 
 // 指定したroomIdに属するクライアントすべてに対しイベントを送信する
 function emitToRoom(roomId, event, data, fn) {
@@ -28,14 +30,14 @@ function putStone(client, putData){
   if(RoomData[client.roomId].board[y][x] != 0){
     console.log('can\'t put disc.......');
   }else{
-    for(i=0;i<8;i++){
+    for(i=0; i<dirNum; i++){
       x0=x+Dir[i][0];
       y0=y+Dir[i][1];
       if(isOut(x0, y0)) continue;
       else if(RoomData[client.roomId].board[y0][x0]==0) continue;
       else if(RoomData[client.roomId].board[y0][x0]==p) continue;
       else{ 
-        for(j=1;j<12;j++){
+        for(j=1;j<boardSize;j++){
           x1=x0+Dir[i][0]*j;
           y1=y0+Dir[i][1]*j;
           if(isOut(x1, y1)) break;
@@ -52,8 +54,8 @@ function putStone(client, putData){
         }
       }
     }
-    // for(i=0;i<12;i++){
-      // console.log(""+RoomData[client.roomId].board[i][0]+" "+RoomData[client.roomId].board[i][1]+" "+RoomData[client.roomId].board[i][2]+" "+RoomData[client.roomId].board[i][3]+" "+RoomData[client.roomId].board[i][4]+" "+RoomData[client.roomId].board[i][5]+" "+RoomData[client.roomId].board[i][6]+" "+RoomData[client.roomId].board[i][7]+" "+RoomData[client.roomId].board[i][8]+" "+RoomData[client.roomId].board[i][9]+" "+RoomData[client.roomId].board[i][10]+" "+RoomData[client.roomId].board[i][11]);
+    // for(i=0;i<boardSize;i++){
+      // console.log(""+RoomData[client.roomId].board[i][0]+" "+RoomData[client.roomId].board[i][1]+" "+RoomData[client.roomId].board[i][2]+" "+RoomData[client.roomId].board[i][3]+" "+RoomData[client.roomId].board[i][4]+" "+RoomData[client.roomId].board[i][5]+" "+RoomData[client.roomId].board[i][6]+" "+RoomData[client.roomId].board[i][7]+" "+RoomData[client.roomId].board[i][8]+" "+RoomData[client.roomId].board[i][9]);
     // }
     if(canPut){
       console.log('can put disc!!!!!');
@@ -63,7 +65,7 @@ function putStone(client, putData){
 }
 
 function isOut (x, y){
-  if(x<0 || y<0 || x>11 || y>11) return 1;
+  if(x<0 || y<0 || x>boardSize-1 || y>boardSize-1) return 1;
   else return 0;
 }
 
@@ -122,21 +124,53 @@ exports.onConnection = function (socket) {
       RoomData[client.roomId] = {};
       RoomData[client.roomId] = {
         board: [
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-          [0, 0, 0, 0, 1, 2, 3, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 3, 1, 0, 2, 0, 0, 0, 0],
-          [0, 0, 0, 0, 2, 0, 3, 1, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 1, 2, 3, 0, 0, 0, 0],
-
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 1, 2, 3, 0, 0, 0, 0],
+          [0, 0, 0, 3, 1, 0, 2, 0, 0, 0],
+          [0, 0, 0, 2, 0, 3, 1, 0, 0, 0],
+          [0, 0, 0, 0, 1, 2, 3, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ],
+        // board2: [
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
+        //   [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
+        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
+        //   [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        // ],
+        // board3: [
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 1, 2, 3, 0, 0, 0, 0],
+        //   [0, 0, 0, 3, 1, 0, 2, 0, 0, 0],
+        //   [0, 0, 0, 2, 0, 3, 1, 0, 0, 0],
+        //   [0, 0, 0, 0, 1, 2, 3, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        // ],
+        //  board4: [
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
+        //   [0, 0, 0, 3, 4, 3, 4, 0, 0, 0],
+        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
+        //   [0, 0, 0, 3, 4, 3, 4, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        // ],       
         player_num: 1,
         player_no: 0,
         finish_flag: 0
@@ -259,8 +293,8 @@ exports.onConnection = function (socket) {
       }
       if(RoomData[client.roomId].player_no == 3){
         var i=0, j=0;
-        for(i=0;i<12;i++){
-          for(j=0;j<12;j++){
+        for(i=0;i<boardSize;i++){
+          for(j=0;j<boardSize;j++){
             RoomData[client.roomId].board[i][j] = 0;
           }
         }
