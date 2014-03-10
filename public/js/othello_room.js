@@ -182,6 +182,14 @@ function connect_socket() {
       }
     });
 
+    socket.on('Game dissolved', function (message) {
+      console.log('game dissolved');
+      setBoard(2);
+      $("#join").removeClass('disabled');
+
+    });
+
+
     // サーバから配置のデータもらう。
     socket.on('put disc', function (message){
     	refreshBoard(message);
@@ -223,7 +231,7 @@ function connect_socket() {
       $('#gameState2').text('Game finished');    
       if(dealer_flag){
         $("#start").removeClass('disabled');
-        $("#change").removeClass('disabled');
+        $("#dissolve").removeClass('disabled');
       }
     });
 
@@ -313,7 +321,7 @@ window.onload = function(){
     console.log('start clicked');
     if(players>=2 && dealer_flag){
       $("#start").addClass('disabled');
-      $("#change").addClass('disabled');
+      $("#dissolve").addClass('disabled');
       socket.emit('dealer start')
     }
   }
@@ -323,6 +331,16 @@ window.onload = function(){
     if(dealer_flag){
       $("#finish").addClass('disabled');
       socket.emit('Finish request');
+    }
+  }
+  // ディーラーがdissolveした時
+  document.getElementById('dissolve').onclick = function() {
+    console.log('dissolve clicked');
+    if(dealer_flag){
+      $("#dissolve").addClass('disabled');
+      $("#start").addClass('disabled');
+      socket.emit('Dissolve request');
+      dealer_flag = 0;
     }
   }
 }

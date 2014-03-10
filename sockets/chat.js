@@ -265,17 +265,20 @@ exports.onConnection = function (socket) {
       RoomData[client.roomId].result = [];
       RoomData[client.roomId].result.push(RoomData[client.roomId].board);
       RoomData[client.roomId].result.push(RoomData[client.roomId].playerArray);
-      /*
-        すぐに再選できるように準備
-      */
-        emitToRoom(client.roomId, 'Game finished', RoomData[client.roomId].result);
+      emitToRoom(client.roomId, 'Game finished', RoomData[client.roomId].result);
     });
   });
-  /*
-    //　change memberされた時の処理
 
-  */
-
+  socket.on('Dissolve request', function (){
+    socket.get('client', function (err, client){
+      if (err || !client) {
+        return;
+      }
+      RoomData[client.roomId].boardArray = [];
+      emitToRoom(client.roomId, 'Game dissolved', RoomData[client.roomId].result);
+    });
+  });
+  
   // ソケットが切断された場合、ソケット一覧からソケットを削除する
   socket.on('disconnect', function () {
     socket.get('client', function (err, client) {

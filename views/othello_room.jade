@@ -26,7 +26,7 @@ block content
     button#join.btn.btn-default(type='button', name='join') Join
     button#start.btn.btn-default.disabled(type='button', name='dealer') Start
     button#finish.btn.btn-default.disabled(type='button', name='finish') Finish 
-    button#change.btn.btn-default.disabled(type='button', name='change') Change members 
+    button#dissolve.btn.btn-default.disabled(type='button', name='dissolve') Dissolve 
     h3#gameState1 your color
     h3#gameState2 gameState
 
@@ -45,7 +45,7 @@ block content
         h3: span#yourname name: #{user.name}
         form
           label
-            textarea#message.span4(rows='5', placeholder='メッセージを入力...')
+            textarea#message.span4(rows='3', placeholder='メッセージを入力...')
           button#post-message.btn.btn-primary(type='button') メッセージを投稿
         #members-box
           h5 チャットメンバー：
