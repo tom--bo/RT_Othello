@@ -9,37 +9,33 @@ block content
       roomId: '#{room.name}#{room.password}',
       mode: '#{mode}', 
     };
-
-  //- ルーム名
-  //- button#white.btn.btn-default(type='button', name='white') White
-  //- button#white.btn.btn-default(type='button', name='black') Black
-  //- button#red.btn.btn-default(type='button', name='red') Red
-  //- button#blue.btn.btn-default(type='button', name='blue') Blue
-  //- button#yellow.btn.btn-default.disabled(type='button', name='yellow') Yellow
+    var boardSize = 10;
 
   //- オセロの動的配置
   #othello_board
     - var i = 0;
     - var j = 0;
     table(cellspacing=0)
-      - var v = [1,2,3,4,5,6,7,8,9,10,11,12];
+      - var v = [0,1,2,3,4,5,6,7,8,9];
       each item in v
         tr
           each item2 in v
-            td(id='massI#{item}I#{item2}I' class='mass')
+            td(id='mass#{item}#{item2}' class='mass')
               img(src='/img/100mass_green.png', alt='')
 
-    button#ImReady.btn.btn-default(type='button', name='ImReady') I'm ready 
-    button#reset.btn.btn-default.disabled(type='button', name='reset') game reset 
-    h2#client-color 
-    h2#timetostart 
+    button#join.btn.btn-default(type='button', name='join') Join
+    button#start.btn.btn-default.disabled(type='button', name='dealer') Start
+    button#finish.btn.btn-default.disabled(type='button', name='finish') Finish 
+    button#change.btn.btn-default.disabled(type='button', name='change') Change members 
+    h3#gameState1 your color
+    h3#gameState2 gameState
 
 
   //- ルーム内チャット
   .navbar.navbar-inverse.navbar-fixed-top
     .navbar-inner
       .container
-        a.brand(href='/') minichat
+        a.brand(href='/') RealTimeOthello
         ul.nav
           li: a ルーム名：#{room.name}
           li: a(href='/') 退出する

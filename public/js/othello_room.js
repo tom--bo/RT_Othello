@@ -1,149 +1,119 @@
 //--------グローバル変数の定義----------
 var msgSize = 90;					// メッセージサイズ
-var gameStartFlag = 0;
-var board = new Array();					// ボード配列
-var blackStoneNum = 0;					// 黒石の数
-var whiteStoneNum = 0;					// 白石の数
-var redStoneNum = 0;          // 白石の数
+var onGame_flag = 0;
+var board = [];					// ボード配列
+var blackStoneNum=0, whiteStoneNum=0, redStoneNum=0, yellowStoneNum = 0; 
 var putData = {
 	player: 0,
 	x: 0,
 	y: 0
 };
+var socket;
 var dir = [
 		[-1, -1], [0, -1], [1, -1],
 		[-1, 0],         [1, 0],
 		[-1, 1], [0, 1], [1, 1]
 ];
-var socket;
+var dirNum = 8;
+var boardSize = 10;
 var time_count = 3;
+var players = 0;
+var dealer_flag = 0;
+var boardArray = [
+  [ [0, 2, 0, 0],
+    [0, 1, 2, 1],
+    [1, 2, 1, 0],
+    [0, 0, 2, 0], ],
+
+  [ [1, 2, 3, 0],
+    [3, 1, 0, 2],
+    [2, 0, 3, 1],
+    [0, 1, 2, 3], ],
+
+  [ [1, 2, 1, 2],
+    [3, 4, 3, 4],
+    [1, 2, 1, 2],
+    [3, 4, 3, 4], ]       
+];
+var Black="#222", White="#ddd", Red="#f30", Yellow="#03f", BoardBGColor="#2d6412", Dealer="#900";
+var Color=["#2E6412", "#222", "#ddd", "#f30", "#EEEC00"];
 
 function isOut (x, y){
-  if(x<0 || y<0 || x>11 || y>11) return 1;
+  if(x<0 || y<0 || x>boardSize-1 || y>boardSize-1) return 1;
   else return 0;
 }
 
 // 初期化
-function newGame(){
-	// ボードの初期化
-	for(var i = 0; i < 12; i++){
+function setBoard(playerNum){
+  if(playerNum<2) return 0;
+  var i,j;
+  var initMin = 3;
+  var initMax = 6;
+	for(i=0; i<boardSize; i++){
 		board[i] = new Array();
-		for(var j = 0; j < 12; j++){
+		for(j=0; j<boardSize; j++){
 			board[i][j] = 0; 
 		}
 	}
-	board[4][4] = board[5][5] = board[6][7] = board[7][5] = 1;
-	board[4][5] = board[5][7] = board[6][4] = board[7][6] = 2;
-  board[4][6] = board[5][4] = board[6][6] = board[7][7] = 3;
-
-  // バックグラウンドの色
-  // 黒
-  $("#massI5I5I").css("background-color", "#222");
-  $("#massI6I6I").css("background-color", "#222");
-  $("#massI7I8I").css("background-color", "#222");
-  $("#massI8I6I").css("background-color", "#222");
-  // 白
-  $("#massI5I6I").css("background-color", "#ddd");
-  $("#massI6I8I").css("background-color", "#ddd");
-  $("#massI7I5I").css("background-color", "#ddd");
-  $("#massI8I7I").css("background-color", "#ddd");
-  // 赤
-  $("#massI5I7I").css("background-color", "#f30");
-  $("#massI6I5I").css("background-color", "#f30");
-  $("#massI7I7I").css("background-color", "#f30");
-  $("#massI8I8I").css("background-color", "#f30");
-
+  for(i=initMin; i<=initMax; i++){
+    for(j=initMin; j<=initMax; j++){
+      board[i][j] = boardArray[playerNum-2][i-3][j-3];
+      var boardstr = "#mass" + i + j;
+      $(boardstr).css("background-color", Color[boardArray[playerNum-2][i-3][j-3]]);
+    }
+  }
 }
 
-function resetGameState(){
+function resetGameState(playernum, boardOnly){
   var i=0, j=0;
-  putData.player = 0;
+  if(!boardOnly) putData.player = -1;
   putData.x = 0;
   putData.y = 0;
-  blackStoneNum = 0;
-  whiteStoneNum = 0;
-  redStoneNum   = 0;
-  gameStartFlag = 0;
-  for(i = 0; i < 12; i++){
-    for(j = 0; j < 12; j++){
-      board[i][j] = 0; 
-    }
-  }
-  board[4][4] = board[5][5] = board[6][7] = board[7][5] = 1;
-  board[4][5] = board[5][7] = board[6][4] = board[7][6] = 2;
-  board[4][6] = board[5][4] = board[6][6] = board[7][7] = 3;
-  for(i=0;i<12;i++){
-    for(j=0;j<12;j++){
-      var s = "#massI" + (i+1) + "I" + (j+1) + "I";
-      if(board[i][j] == 1) $(s).css("background-color", "#222");
-      if(board[i][j] == 2) $(s).css("background-color", "#ddd");
-      if(board[i][j] == 3) $(s).css("background-color", "#f30");
-      if(board[i][j] == 0) $(s).css("background-color", "#2d6412");
-    }
-  }
+  blackStoneNum = 0, whiteStoneNum = 0, redStoneNum = 0, onGame_flag = 0;
 }
 
 function countDown(){
   if(time_count == 0){
-    gameStartFlag = 1;
-    $("#ImReady").text("Game finished");
-    $("#timetostart").text("Start!!!");
+    onGame_flag = 1;
+    $("#gameState2").text("on Game");
     setTimeout('countDown()', 3000);
     time_count--;
   }else if(time_count == -1){
     $("#timetostart").text("B: " + blackStoneNum + " - W: " + whiteStoneNum + " - R: " + redStoneNum);
-    $("#ImReady").removeClass('disabled');
+    $("#join").removeClass('disabled');
     time_count = 3;
   }else{
     str_time = "" + time_count;
-    $('#timetostart').text(str_time);
+    $('#gameState2').text('Start Game in ' + str_time);
     time_count--;
     setTimeout('countDown()', 1000);
   }
 }
 
-function countDisk(){
-	blackStoneNum = 0;
-	whiteStoneNum = 0;
-  redStoneNum = 0;
-	for( var x = 0; x < 12; x++ ) {
-		for( var y = 0; y < 12; y++ ) {
-			if( board[x][y] == 1 ) blackStoneNum++;
-			else if( board[x][y] == 2 ) whiteStoneNum++; 
-      else if( board[x][y] == 3 ) redStoneNum++; 
-		}
-	}
-}
-
 // 石を置いてひっくり返す
 function putStone(message){
-	startTime = new Date();
-  blackStoneNum = 0;
-  whiteStoneNum = 0;
-  redStoneNum = 0;
+  blackStoneNum = 0, whiteStoneNum = 0, redStoneNum = 0, yellowStoneNum = 0;
 	var i=0, j=0;
-	for(i=0;i<12;i++){
-		for(j=0;j<12;j++){
+	for(i=0;i<boardSize;i++){
+		for(j=0;j<boardSize;j++){
       board[i][j] = message[i][j];
-			var s = "#massI" + (i+1) + "I" + (j+1) + "I";
+			var s = "#mass" + i + j;
 			if(board[i][j] == 1){
-        $(s).css("background-color", "#222");
+        $(s).css("background-color", Black);
         blackStoneNum++;
-      } 
-			else if(board[i][j] == 2){
-        $(s).css("background-color", "#ddd");
+      }else if(board[i][j] == 2){
+        $(s).css("background-color", White);
         whiteStoneNum++;
-      }
-      else if(board[i][j] == 3){
-        $(s).css("background-color", "#e11");
+      }else if(board[i][j] == 3){
+        $(s).css("background-color", Red);
         redStoneNum++;
+      }else if(board[i][j] == 4){
+        $(s).css("background-color", Yellow);
+        yellowStoneNum++;
       }
 		}
 	}
   $("#timetostart").text("B: " + blackStoneNum + " - W: " + whiteStoneNum + " - R: " + redStoneNum);
-	stopTime = new Date();
-	console.log("passing time >>>>>>>>");
-	console.log((stopTime-startTime) + "ms");
 }
 
 function connect_socket() {
@@ -178,10 +148,6 @@ function connect_socket() {
     socket.on('userName exists', function(data) {
       authRetry('その名前はすでに使われています');
     });
-    // 認証失敗：ルームに２人のユーザーが存在
-    socket.on('room full', function(data) {
-      authRetry('ルームにはすでに3人のプレイヤーがいます');
-    });
     // チャットログの送信
     socket.on('request log', function(data, callback) {
       callback(messageLogs);
@@ -208,12 +174,15 @@ function connect_socket() {
     });
 
     // スタートの合図受信
-    socket.on('game start', function (message) {
-      if(putData.player == 1) $('#client-color').text('Color: Black');
-      else if(putData.player == 2) $('#client-color').text('Color: White');
-      else $('#client-color').text('Color: Red');
-      $("#ImReady").text("Count down started");
-      setTimeout('countDown()', 1000);
+    socket.on('start game', function (message) {
+      resetGameState(/* player人数 */);
+      if(putData.player != -1){
+        if(putData.player == 0) $('#gamestate1').text('Color: Black');
+        else if(putData.player == 1) $('#gamestate1').text('Color: White');
+        else if(putData.player == 2) $('#gamestate1').text('Color: Red');
+        else $('#gamestate1').text('Color: Yellow');
+        setTimeout('countDown()', 1000);
+      }
     });
 
     // サーバから配置のデータもらう。
@@ -222,23 +191,33 @@ function connect_socket() {
     });
 
     // ゲームスタート前に自分のプレイヤNo.をもらう
-    socket.on('player num', function (message){
+    socket.on('playerNo', function (message){
     	putData.player = message;
+    });
+
+    // プレイヤーが参加してきた時
+    socket.on('add player', function (message){
+      players = message;
+      setBoard(players);
+    });
+
+    // 4人プレイヤーがいた場合
+    socket.on('over 4player', function (message){
+      alert('4 players participated in already!!');
+    });
+    socket.on('selected as dealer', function (message){
+      dealer_flag = 1;
+      if(onGame_flag){
+        $("#reset").removeClass('disabled');
+      }else{
+        $("#start").removeClass('disabled');
+      }
     });
 
     // 終了手続き
     socket.on('Game finished', function (message){
       putStone(message);
-      var judge_score;
-      if(putData.player == 1 && blackStoneNum > whiteStoneNum && blackStoneNum > redStoneNum) judge_score = 1;
-      else if(putData.player == 2 && whiteStoneNum > blackStoneNum && whiteStoneNum > redStoneNum) judge_score = 1;
-      else if(putData.player == 3 && redStoneNum > whiteStoneNum && redStoneNum > blackStoneNum) judge_score = 1;
-      else judge_score = -1;
-
-      if(judge_score > 0) $('#client-color').text('Win!! (=ﾟωﾟ)ﾉ');
-      else if(judge_score < 0) $('#client-color').text('Lose... (゜∀。)');
-      else $('#client-color').text('Draw (っ･ω･)っ');
-      $("#reset").removeClass('disabled');
+      /* 勝った人を表示 */
     });
 
     // チャットメッセージ送信
@@ -265,7 +244,7 @@ function connect_socket() {
       return false;
     });
 
-  }); // document.ready()ここまで
+  }); 
 
   function authRetry(message) {
     $('#credential-dialog-header').text(message);    
@@ -296,60 +275,36 @@ function connect_socket() {
 window.onload = function(){
 	// 初期設定
 	connect_socket();
-	newGame();
+	setBoard(2);
 
   $(".mass").click(function() {
-    if(!gameStartFlag) return;
+    if(!onGame_flag) return;
     id = $(this).attr("id");
-    searchIndex = id.search('I');
-    // yの取得
-    if(id.charAt(searchIndex + 2) == 'I') 
-      putData.y = parseInt(id.charAt(searchIndex + 1)) - 1;
-    else if(parseInt(id.charAt(searchIndex + 2)) == '0')
-      putData.y = 9;
-    else 
-      putData.y = (parseInt(id.charAt(searchIndex + 1)) * 10) + parseInt(id.charAt(searchIndex + 2)) - 1;
+    // x,yの取得
+    putData.y = parseInt(id.charAt(3));
+    putData.x = parseInt(id.charAt(4));
 
-    // xの取得
-    if(putData.y < 9){
-      if(id.charAt(searchIndex + 4) == 'I') 
-        putData.x = parseInt(id.charAt(searchIndex + 3)) - 1;
-      else if(parseInt(id.charAt(searchIndex + 4)) == '0')
-        putData.x = 9;
-      else 
-        putData.x = (parseInt(id.charAt(searchIndex + 3)) * 10) + parseInt(id.charAt(searchIndex + 4)) - 1;
-    }else{ 
-      if(id.charAt(searchIndex + 5) == 'I'){
-        putData.x = parseInt(id.charAt(searchIndex + 4)) - 1;
-      }
-      else if(parseInt(id.charAt(searchIndex + 5)) == '0'){
-        putData.x = 9;
-      }
-      else{
-        putData.x = (parseInt(id.charAt(searchIndex + 4)) * 10) + parseInt(id.charAt(searchIndex + 5)) - 1;
-      } 
-    }
     socket.emit('check put', putData);
   });
 
-  // スタートボタン押した時の処理
-  document.getElementById('ImReady').onclick = function() {
+  document.getElementById('join').onclick = function() {
     // ゲームが始まっていなければ
-    if(!gameStartFlag){
-      $("#ImReady").text("waiting opponent");
-      $("#ImReady").addClass('disabled');
-      socket.emit('startPushed', function () {
-      });
-    }else{ // ゲーム開始後
-      $("#ImReady").addClass('disabled');
-      socket.emit('Finish request');
+    if(!onGame_flag){
+      $("#join").addClass('disabled');
+      socket.emit('participate request', function() {});
+    }else{ // ゲーム中
+      $("#join").addClass('disabled');
+      /* 
+      dealerがmemberを変更するのを待って参加してください
+      の表示
+      */
     }
   }
-
-  document.getElementById('reset').onclick = function() {
-    $("#reset").addClass('disabled');
-    $("#ImReady").addClass('disabled');
-    resetGameState();
-    socket.emit('reset request');
+  // スタートボタン押した時の処理
+  document.getElementById('start').onclick = function() {
+    if(players>=2 && dealer_flag){
+      $("#start").addClass('disabled');
+      socket.emit('dealer start')
+    }
   }
 }

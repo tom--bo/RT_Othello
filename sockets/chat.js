@@ -1,6 +1,7 @@
 var crypto = require('crypto');
+// socket.ioのソケットを管理するオブジェクト
+var socketsOf = {};
 var RoomData = {};
-
 var Dir = [
   [-1, -1], [0, -1], [1, -1],
   [-1, 0],         [1, 0],
@@ -8,6 +9,7 @@ var Dir = [
 ];
 var dirNum = 8;
 var boardSize = 10;
+var initMin = 3, initMax = 6;
 
 // 指定したroomIdに属するクライアントすべてに対しイベントを送信する
 function emitToRoom(roomId, event, data, fn) {
@@ -19,6 +21,7 @@ function emitToRoom(roomId, event, data, fn) {
     sockets[key].emit(event, data, fn);
   });
 }
+
 function putStone(client, putData){
   var x = putData.x;
   var y = putData.y;
@@ -84,8 +87,6 @@ function _formatDate(date) {
   return mm + '/' + dd + ' ' + HH + ':' + MM;
 };
 
-// socket.ioのソケットを管理するオブジェクト
-var socketsOf = {};
 
 // socket.ioのコネクション設定
 exports.onConnection = function (socket) {
@@ -127,53 +128,35 @@ exports.onConnection = function (socket) {
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 1, 2, 3, 0, 0, 0, 0],
-          [0, 0, 0, 3, 1, 0, 2, 0, 0, 0],
-          [0, 0, 0, 2, 0, 3, 1, 0, 0, 0],
-          [0, 0, 0, 0, 1, 2, 3, 0, 0, 0],
+          [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
+          [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
+          [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
+          [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ],
-        // board2: [
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
-        //   [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
-        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
-        //   [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        // ],
-        // board3: [
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 1, 2, 3, 0, 0, 0, 0],
-        //   [0, 0, 0, 3, 1, 0, 2, 0, 0, 0],
-        //   [0, 0, 0, 2, 0, 3, 1, 0, 0, 0],
-        //   [0, 0, 0, 0, 1, 2, 3, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        // ],
-        //  board4: [
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
-        //   [0, 0, 0, 3, 4, 3, 4, 0, 0, 0],
-        //   [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
-        //   [0, 0, 0, 3, 4, 3, 4, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        // ],       
-        player_num: 1,
-        player_no: 0,
-        finish_flag: 0
+        boardArray: [
+          [ [1, 2, 1, 2],
+            [2, 1, 2, 1],
+            [1, 2, 1, 2],
+            [2, 1, 2, 1], ],
+
+          [ [1, 2, 3, 0],
+            [3, 1, 0, 2],
+            [2, 0, 3, 1],
+            [0, 1, 2, 3], ],
+
+          [ [1, 2, 1, 2],
+            [3, 4, 3, 4],
+            [1, 2, 1, 2],
+            [3, 4, 3, 4], ]       
+        ],
+        roomate_num: 0,
+        player_num: 0,
+        finish_flag: 0,
+        dealerName: '',
+        playerArray: []
       }
       socketsOf[client.roomId] = {};
     }
@@ -189,12 +172,7 @@ exports.onConnection = function (socket) {
         socket.emit('userName exists', {});
         return;
       }
-      // すでにルームがいっぱいでないか確認
-      if (RoomData[client.roomId].player_num >= 3){
-        socket.emit('room full', {});
-        return;
-      }
-      RoomData[client.roomId].player_num++;
+      RoomData[client.roomId].roomate_num++;
     }
 
     // ソケットにクライアントの情報をセットする
@@ -225,25 +203,48 @@ exports.onConnection = function (socket) {
 
   });
 
-  socket.on('startPushed', function (){
+  socket.on('dealer start', function (){
     socket.get('client', function (err, client){
       if (err || !client) {
         return;
       }
-      console.log('startPushed');
-      if(RoomData[client.roomId].player_no == 0){
-        RoomData[client.roomId].player_no = 1;
-        socket.emit('player num', RoomData[client.roomId].player_no);
-      }else if(RoomData[client.roomId].player_no == 1){
-        RoomData[client.roomId].player_no = 2;
-        socket.emit('player num', RoomData[client.roomId].player_no);
-      }else if(RoomData[client.roomId].player_no == 2){
-        RoomData[client.roomId].player_no = 3;
-        socket.emit('player num', RoomData[client.roomId].player_no);
+      console.log('dealer start');
+      /*
+        ゲーム参加者の人数をカウントして'start game'と同時に通知
+        人数によって盤の変更
+      */
+      for(i=0; i<boardSize; i++){
+        for(j=0; j<boardSize; j++){
+          RoomData[client.roomId].board[i][j] = 0; 
+        }
       }
-      if(RoomData[client.roomId].player_no == 3){
-        emitToRoom(client.roomId, 'game start');
-        RoomData[client.roomId].player_no = 0;
+      RoomData[client.roomId].player_num = RoomData[client.roomId].playerArray.length;
+      for(i=initMin; i<=initMax; i++){
+        for(j=initMin; j<=initMax; j++){
+          RoomData[client.roomId].board[i][j] = boardArray[RoomData[client.roomId].player_num-2][i-3][j-3];
+        }
+      }
+      emitToRoom(client.roomId, 'start game');
+    });
+  });
+
+  socket.on('participate request', function (){
+    socket.get('client', function (err, client){
+      if (err || !client) {
+        return;
+      }
+      console.log('participate request');
+      if(RoomData[client.roomId].playerArray.length < 4){
+        RoomData[client.roomId].playerArray.push(client.userName);
+        socket.emit('playerNo', RoomData[client.roomId].playerArray.length-1);
+        // もし最初に参加してたらディーラー
+        if(RoomData[client.roomId].playerArray.length == 1){
+          socket.emit('selected as dealer', {});
+          RoomData[client.roomId].dealerName = client.userName;
+        }
+        emitToRoom(client.roomId, 'add player', RoomData[client.roomId].playerArray.length);
+      }else{
+        socket.emit('over 4player', {});
       }
     });
   });
@@ -253,12 +254,11 @@ exports.onConnection = function (socket) {
       if (err || !client) {
         return;
       }
-      startTime = new Date();
+      // startTime = new Date();
       putStone(client, putData);
-
-      stopTime = new Date();
-      console.log("passing time >>>>>>");
-      console.log((stopTime-startTime) + "ms");
+      // stopTime = new Date();
+      // console.log("passing time >>>>>>");
+      // console.log((stopTime-startTime) + "ms");
     });
   });
 
@@ -267,6 +267,11 @@ exports.onConnection = function (socket) {
       if (err || !client) {
         return;
       }
+      /*
+        dealerから送られてくるバージョンに変更
+
+        すぐに再選できるように準備
+      */
       RoomData[client.roomId].finish_flag++;
       if(RoomData[client.roomId].finish_flag == 3){
         // socket.broadcast.emit('Game finished', client.RoomData[client.roomId].board);
@@ -275,46 +280,10 @@ exports.onConnection = function (socket) {
       }
     });
   });
-  socket.on('reset request', function (){
-    socket.get('client', function (err, client) {
-      if (err || !client) {
-        return;
-      }
-      console.log('startPushed');
-      if(RoomData[client.roomId].player_no == 0){
-        RoomData[client.roomId].player_no = 1;
-        socket.emit('player num', RoomData[client.roomId].player_no);
-      }else if(RoomData[client.roomId].player_no == 1){
-        RoomData[client.roomId].player_no = 2;
-        socket.emit('player num', RoomData[client.roomId].player_no);
-      }else if(RoomData[client.roomId].player_no == 2){
-        RoomData[client.roomId].player_no = 3;
-        socket.emit('player num', RoomData[client.roomId].player_no);
-      }
-      if(RoomData[client.roomId].player_no == 3){
-        var i=0, j=0;
-        for(i=0;i<boardSize;i++){
-          for(j=0;j<boardSize;j++){
-            RoomData[client.roomId].board[i][j] = 0;
-          }
-        }
-        RoomData[client.roomId].board[4][4] = 1;
-        RoomData[client.roomId].board[5][5] = 1;
-        RoomData[client.roomId].board[6][7] = 1;
-        RoomData[client.roomId].board[7][5] = 1;
-        RoomData[client.roomId].board[4][5] = 2;
-        RoomData[client.roomId].board[5][7] = 2;
-        RoomData[client.roomId].board[6][4] = 2;
-        RoomData[client.roomId].board[7][6] = 2;
-        RoomData[client.roomId].board[4][6] = 3;
-        RoomData[client.roomId].board[5][4] = 3;
-        RoomData[client.roomId].board[6][6] = 3;
-        RoomData[client.roomId].board[7][7] = 3;
-        emitToRoom(client.roomId, 'game start');
-        RoomData[client.roomId].player_no = 0;
-      }
-    });
-  });
+  /*
+    //　change memberされた時の処理
+
+  */
 
   // ソケットが切断された場合、ソケット一覧からソケットを削除する
   socket.on('disconnect', function () {
@@ -322,7 +291,7 @@ exports.onConnection = function (socket) {
       if (err || !client) {
         return;
       }
-      RoomData[client.roomId].player_num--;
+      RoomData[client.roomId].roomate_num--;
       var sockets = socketsOf[client.roomId];
       if(sockets !== undefined) {
         delete sockets[client.userName];
@@ -332,6 +301,7 @@ exports.onConnection = function (socket) {
       if (members.length === 0) {
         delete socketsOf[client.roomId];
       } else {
+
         // 既存クライアントにメンバーの変更を通知する
         emitToRoom(client.roomId, 'update members', members);
         var message = {
@@ -344,6 +314,22 @@ exports.onConnection = function (socket) {
         shasum.update('-' + message.roomId);
         message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
         emitToRoom(message.roomId, 'push message', message);
+
+        if(client.userName == RoomData[client.roomId].dealerName){
+          RoomData[client.roomId].playerArray.splice(RoomData[client.roomId].playerArray.indexOf(client.userName), 1);
+          RoomData[client.roomId].dealerName = RoomData[client.roomId].playerArray[0];
+          socket.emit('selected as dealer', {});
+          var message = {
+            from: 'システムメッセージ',
+            body: RoomData[client.roomId].dealerName + 'さんが次のディーラーです',
+            roomId: client.roomId
+          }
+          var shasum = crypto.createHash('sha1')
+          message.date = _formatDate(new Date());
+          shasum.update('-' + message.roomId);
+          message.id = (new Date()).getTime() + '-' + shasum.digest('hex');
+          emitToRoom(message.roomId, 'push message', message);
+        }
       }
     });
   });
