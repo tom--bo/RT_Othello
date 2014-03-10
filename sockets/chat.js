@@ -128,19 +128,19 @@ exports.onConnection = function (socket) {
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
-          [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
-          [0, 0, 0, 1, 2, 1, 2, 0, 0, 0],
-          [0, 0, 0, 2, 1, 2, 1, 0, 0, 0],
+          [0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 1, 2, 1, 0, 0, 0],
+          [0, 0, 0, 1, 2, 1, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 2, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ],
         boardArray: [
-          [ [1, 2, 1, 2],
-            [2, 1, 2, 1],
-            [1, 2, 1, 2],
-            [2, 1, 2, 1], ],
+          [ [0, 2, 0, 0],
+            [0, 1, 2, 1],
+            [1, 2, 1, 0],
+            [0, 0, 2, 0], ],
 
           [ [1, 2, 3, 0],
             [3, 1, 0, 2],
@@ -154,7 +154,6 @@ exports.onConnection = function (socket) {
         ],
         roomate_num: 0,
         player_num: 0,
-        finish_flag: 0,
         dealerName: '',
         playerArray: []
       }
@@ -209,10 +208,6 @@ exports.onConnection = function (socket) {
         return;
       }
       console.log('dealer start');
-      /*
-        ゲーム参加者の人数をカウントして'start game'と同時に通知
-        人数によって盤の変更
-      */
       for(i=0; i<boardSize; i++){
         for(j=0; j<boardSize; j++){
           RoomData[client.roomId].board[i][j] = 0; 
@@ -221,10 +216,10 @@ exports.onConnection = function (socket) {
       RoomData[client.roomId].player_num = RoomData[client.roomId].playerArray.length;
       for(i=initMin; i<=initMax; i++){
         for(j=initMin; j<=initMax; j++){
-          RoomData[client.roomId].board[i][j] = boardArray[RoomData[client.roomId].player_num-2][i-3][j-3];
+          RoomData[client.roomId].board[i][j] = RoomData[client.roomId].boardArray[RoomData[client.roomId].player_num-2][i-3][j-3];
         }
       }
-      emitToRoom(client.roomId, 'start game');
+      emitToRoom(client.roomId, 'start game', RoomData[client.roomId].playerArray.length);
     });
   });
 
@@ -236,7 +231,7 @@ exports.onConnection = function (socket) {
       console.log('participate request');
       if(RoomData[client.roomId].playerArray.length < 4){
         RoomData[client.roomId].playerArray.push(client.userName);
-        socket.emit('playerNo', RoomData[client.roomId].playerArray.length-1);
+        socket.emit('playerNo', RoomData[client.roomId].playerArray.length);
         // もし最初に参加してたらディーラー
         if(RoomData[client.roomId].playerArray.length == 1){
           socket.emit('selected as dealer', {});
@@ -267,17 +262,13 @@ exports.onConnection = function (socket) {
       if (err || !client) {
         return;
       }
+      RoomData[client.roomId].result = [];
+      RoomData[client.roomId].result.push(RoomData[client.roomId].board);
+      RoomData[client.roomId].result.push(RoomData[client.roomId].playerArray);
       /*
-        dealerから送られてくるバージョンに変更
-
         すぐに再選できるように準備
       */
-      RoomData[client.roomId].finish_flag++;
-      if(RoomData[client.roomId].finish_flag == 3){
-        // socket.broadcast.emit('Game finished', client.RoomData[client.roomId].board);
-        emitToRoom(client.roomId, 'Game finished', RoomData[client.roomId].board);
-        RoomData[client.roomId].finish_flag = 0;
-      }
+        emitToRoom(client.roomId, 'Game finished', RoomData[client.roomId].result);
     });
   });
   /*
