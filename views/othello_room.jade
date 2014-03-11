@@ -15,20 +15,27 @@ block content
   #othello_board
     - var i = 0;
     - var j = 0;
-    table(cellspacing=0)
-      - var v = [0,1,2,3,4,5,6,7,8,9];
-      each item in v
-        tr
-          each item2 in v
-            td(id='mass#{item}#{item2}' class='mass')
-              img(src='/img/100mass_green.png', alt='')
+    #board
+      table(cellspacing=0)
+        - var v = [0,1,2,3,4,5,6,7,8,9];
+        each item in v
+          tr
+            each item2 in v
+              td(id='mass#{item}#{item2}' class='mass')
+                img(src='/img/100mass_green.png', alt='')
 
-    button#join.btn.btn-default(type='button', name='join') Join
-    button#start.btn.btn-default.disabled(type='button', name='dealer') Start
-    button#finish.btn.btn-default.disabled(type='button', name='finish') Finish 
-    button#dissolve.btn.btn-default.disabled(type='button', name='dissolve') Dissolve 
-    h3#gameState1 your color
-    h3#gameState2 gameState
+      button#join.btn.btn-default(type='button', name='join') Join
+      button#start.btn.btn-default.disabled(type='button', name='dealer') Start
+      button#finish.btn.btn-default.disabled(type='button', name='finish') Finish 
+      button#dissolve.btn.btn-default.disabled(type='button', name='dissolve') Dissolve 
+    #status 
+      table
+        tr
+          th#title1 Your Color
+          td#gameState1
+        tr
+          th#title2 Game State
+          td#gameState2 
 
 
   //- ルーム内チャット

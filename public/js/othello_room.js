@@ -107,7 +107,13 @@ function refreshBoard(message){
       }
 		}
 	}
-  $("#gameState2").text("B: " + blackStoneNum + " - W: " + whiteStoneNum + " - R: " + redStoneNum + " - Y: " + yellowStoneNum);
+  status_str = "B: " + blackStoneNum + " - W: " + whiteStoneNum;
+  if(players == 3){
+    status_str += " - R: " + redStoneNum;
+  }else if(players == 4){
+    status_str += " - Y: " + yellowStoneNum;
+  }
+  $("#gameState2").text(status_str);
 }
 
 function connect_socket() {
@@ -172,10 +178,10 @@ function connect_socket() {
       console.log('start game called and member count is '+ message);
       if(putData.player != -1){
         // resetGameState(message);
-        if(putData.player == 1) $('#gamestate1').text('Color: Black');
-        else if(putData.player == 2) $('#gamestate1').text('Color: White');
-        else if(putData.player == 3) $('#gamestate1').text('Color: Red');
-        else $('#gamestate1').text('Color: Yellow');
+        if(putData.player == 1) $('#gameState1').text('Black');
+        else if(putData.player == 2) $('#gameState1').text('White');
+        else if(putData.player == 3) $('#gameState1').text('Red');
+        else $('#gameState1').text('Yellow');
         console.log('call countDown()');
         setTimeout('countDown()', 1000);
         setBoard(message);
@@ -223,12 +229,11 @@ function connect_socket() {
     socket.on('Game finished', function (message){
       refreshBoard(message[0]);
       rank = [blackStoneNum, whiteStoneNum, redStoneNum, yellowStoneNum];
-      rank_str = '';
+      rank_str = 'Finished ';
       for(i=0;i<message[1].length;i++){
-        rank_str += message[1][i] + ': ' + rank[i] + ' ';
+        rank_str += message[1][i] + ': ' + rank[i] + ' - ';
       }
-      $('#gameState1').text(rank_str);    
-      $('#gameState2').text('Game finished');    
+      $('#gameState2').text(rank_str);    
       if(dealer_flag){
         $("#start").removeClass('disabled');
         $("#dissolve").removeClass('disabled');
@@ -305,15 +310,13 @@ window.onload = function(){
   document.getElementById('join').onclick = function() {
     // ゲームが始まっていなければ
     console.log('join button pressed');
-    if(!onGame_flag){
-      $("#join").addClass('disabled');
-      socket.emit('participate request', function() {});
-    }else{ // ゲーム中
-      $("#join").addClass('disabled');
-      /* 
-      dealerがmemberを変更するのを待って参加してください
-      の表示
-      */
+    if(!$('#join').hasClass('disabled')){
+      if(!onGame_flag){
+        $("#join").addClass('disabled');
+        socket.emit('participate request', function() {});
+      }else{ // ゲーム中
+        alert('参加は締め切られました。次の回で参加してください。')
+      }
     }
   }
   // スタートボタン押した時の処理

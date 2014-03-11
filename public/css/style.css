@@ -44,17 +44,16 @@ a {
   list-style: none;
 }
 
-#othello_board table {
+#board table {
   margin: 20px 0 20px 0;
 }
 
-tr {
+#board tr {
   border-collapse: collapse;
   border-spacing: 0px;
   vertical-align: bottom;
 }
-
-td {
+#board td {
   border: solid 1px;
   background-color: rgb(45, 100, 18);
   padding-top: 0;
@@ -63,12 +62,26 @@ td {
   padding-bottom: 0;
   line-height: 0;
 }
+#status table{
+  margin: 10px 0 10px;
+  border: solid 1px;
+}
+#status th{
+  border: solid 1px;
+  background-color: #e3e3e3;
+}
+#status td{
+  border: solid 1px;
+  min-width: 300px;
+  padding-right: 10px;
+}
+
 .mass{
   width: 40px;
   height: 40px;
 }
 
-td img{
+#board td img{
   width: 100%;
   height: 100%;
   vertical-align: bottom;
