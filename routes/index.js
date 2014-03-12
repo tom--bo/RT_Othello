@@ -61,7 +61,7 @@ exports.othello_room = function(req, res){
   }
 
   var params = {
-    title: 'ルーム：' + roomName,
+    title: 'RT_Othello ルーム：' + roomName,
     room: {
       name: roomName,
       password: hashedPassword

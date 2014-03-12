@@ -18,6 +18,7 @@ var dirNum = 8;
 var boardSize = 10;
 var time_count = 3;
 var players = 0;
+var playerArray = [];
 var dealer_flag = 0;
 var boardArray = [
   [ [0, 2, 0, 0],
@@ -107,11 +108,12 @@ function refreshBoard(message){
       }
 		}
 	}
-  status_str = "B: " + blackStoneNum + " - W: " + whiteStoneNum;
+  status_str = "";
+  status_str += playerArray[0] + ': ' + blackStoneNum + ' - ' + playerArray[1] + ': ' + whiteStoneNum;
   if(players == 3){
-    status_str += " - R: " + redStoneNum;
+    status_str += ' - ' + playerArray[2] + ': ' +  redStoneNum;
   }else if(players == 4){
-    status_str += " - Y: " + yellowStoneNum;
+    status_str += ' - ' + playerArray[2] + ': ' +  redStoneNum + ' - ' + playerArray[3] + ': ' +  yellowStoneNum;
   }
   $("#gameState2").text(status_str);
 }
@@ -175,16 +177,14 @@ function connect_socket() {
 
     // スタートの合図受信
     socket.on('start game', function (message) {
-      console.log('start game called and member count is '+ message);
       if(putData.player != -1){
-        // resetGameState(message);
+        playerArray = message;
         if(putData.player == 1) $('#gameState1').text('Black');
         else if(putData.player == 2) $('#gameState1').text('White');
         else if(putData.player == 3) $('#gameState1').text('Red');
         else $('#gameState1').text('Yellow');
-        console.log('call countDown()');
         setTimeout('countDown()', 1000);
-        setBoard(message);
+        setBoard(message.length);
       }
     });
 
@@ -229,10 +229,12 @@ function connect_socket() {
     socket.on('Game finished', function (message){
       refreshBoard(message[0]);
       rank = [blackStoneNum, whiteStoneNum, redStoneNum, yellowStoneNum];
-      rank_str = 'Finished ';
-      for(i=0;i<message[1].length;i++){
-        rank_str += message[1][i] + ': ' + rank[i] + ' - ';
+      rank_str = '';
+      rank_str += playerArray[0] + ': ' + rank[0];
+      for(i=1;i<playerArray.length;i++){
+        rank_str += ' - ' + playerArray[i] + ': ' + rank[i];
       }
+      rank_str += ' << Finished >>';
       $('#gameState2').text(rank_str);    
       if(dealer_flag){
         $("#start").removeClass('disabled');

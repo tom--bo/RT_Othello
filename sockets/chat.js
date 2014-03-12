@@ -177,9 +177,9 @@ exports.onConnection = function (socket) {
     // ソケットにクライアントの情報をセットする
     socket.set('client', client, function () {
       socketsOf[client.roomId][client.userName] = socket;
-      // if (client.userName) {
-        // console.log('user ' + client.userName + '@' + client.roomId + ' connected');
-      // }
+      if (client.userName) {
+        console.log('user ' + client.userName + '@' + client.roomId + ' connected');
+      }
     });
 
     // 認証成功
@@ -219,7 +219,7 @@ exports.onConnection = function (socket) {
           RoomData[client.roomId].board[i][j] = RoomData[client.roomId].boardArray[RoomData[client.roomId].player_num-2][i-3][j-3];
         }
       }
-      emitToRoom(client.roomId, 'start game', RoomData[client.roomId].playerArray.length);
+      emitToRoom(client.roomId, 'start game', RoomData[client.roomId].playerArray);
     });
   });
 
