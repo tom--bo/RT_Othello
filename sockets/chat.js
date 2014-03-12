@@ -315,7 +315,7 @@ exports.onConnection = function (socket) {
           emitToRoom(message.roomId, 'selected as dealer', RoomData[client.roomId].playerArray[0]);
           var message = {
             from: 'システムメッセージ',
-            body: RoomData[client.roomId].dealerName + 'さんが次のディーラーです',
+            body: RoomData[client.roomId].dealerName + 'さんが次のディーラーです。一度解散(dissolve)してください',
             roomId: client.roomId
           }
           var shasum = crypto.createHash('sha1')

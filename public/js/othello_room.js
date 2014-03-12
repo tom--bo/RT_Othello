@@ -222,7 +222,7 @@ function connect_socket() {
         if(onGame_flag){
           $("#finish").removeClass('disabled');
         }else{
-          $("#start").removeClass('disabled');
+          $("#dissolved").removeClass('disabled');
         }
       }
     });
