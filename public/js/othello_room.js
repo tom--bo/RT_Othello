@@ -177,7 +177,13 @@ function connect_socket() {
 
     // スタートの合図受信
     socket.on('start game', function (message) {
-      if(putData.player != -1){
+      if(message.length != players){
+        onGame_flag = 0;
+        if(dealer_flag == 1){
+          $('#dissolve').removeClass('disabled');
+          alert('人数の整合性が取れませんでした。一度解散(dissolve)してください');
+        }
+      }else if(putData.player != -1){
         playerArray = message;
         if(putData.player == 1) $('#gameState1').text('Black');
         else if(putData.player == 2) $('#gameState1').text('White');
@@ -216,13 +222,14 @@ function connect_socket() {
     socket.on('over 4player', function (message){
       alert('4 players participated in already!!');
     });
+
     socket.on('selected as dealer', function (message){
       if(message == minichat.userName){
         dealer_flag = 1;
         if(onGame_flag){
           $("#finish").removeClass('disabled');
         }else{
-          $("#dissolved").removeClass('disabled');
+          $("#start").removeClass('disabled');
         }
       }
     });

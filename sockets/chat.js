@@ -275,6 +275,9 @@ exports.onConnection = function (socket) {
         return;
       }
       RoomData[client.roomId].boardArray = [];
+      RoomData[client.roomId].playerArray = [];
+      player_num = 0;
+      dealerName = '';
       emitToRoom(client.roomId, 'Game dissolved', RoomData[client.roomId].result);
     });
   });
