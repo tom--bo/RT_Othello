@@ -217,11 +217,13 @@ function connect_socket() {
       alert('4 players participated in already!!');
     });
     socket.on('selected as dealer', function (message){
-      dealer_flag = 1;
-      if(onGame_flag){
-        $("#reset").removeClass('disabled');
-      }else{
-        $("#start").removeClass('disabled');
+      if(message == minichat.userName){
+        dealer_flag = 1;
+        if(onGame_flag){
+          $("#finish").removeClass('disabled');
+        }else{
+          $("#start").removeClass('disabled');
+        }
       }
     });
 

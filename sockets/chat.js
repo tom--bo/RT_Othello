@@ -234,7 +234,7 @@ exports.onConnection = function (socket) {
         socket.emit('playerNo', RoomData[client.roomId].playerArray.length);
         // もし最初に参加してたらディーラー
         if(RoomData[client.roomId].playerArray.length == 1){
-          socket.emit('selected as dealer', {});
+          socket.emit('selected as dealer', client.userName);
           RoomData[client.roomId].dealerName = client.userName;
         }
         emitToRoom(client.roomId, 'add player', RoomData[client.roomId].playerArray.length);
@@ -312,7 +312,7 @@ exports.onConnection = function (socket) {
         if(client.userName == RoomData[client.roomId].dealerName){
           RoomData[client.roomId].playerArray.splice(RoomData[client.roomId].playerArray.indexOf(client.userName), 1);
           RoomData[client.roomId].dealerName = RoomData[client.roomId].playerArray[0];
-          socket.emit('selected as dealer', {});
+          emitToRoom(message.roomId, 'selected as dealer', RoomData[client.roomId].playerArray[0]);
           var message = {
             from: 'システムメッセージ',
             body: RoomData[client.roomId].dealerName + 'さんが次のディーラーです',
