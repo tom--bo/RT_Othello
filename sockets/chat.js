@@ -31,7 +31,7 @@ function putStone(client, putData){
   var canPut = 0;
 
   if(RoomData[client.roomId].board[y][x] != 0){
-    console.log('can\'t put disc.......');
+//    console.log('can\'t put disc.......');
   }else{
     for(i=0; i<dirNum; i++){
       x0=x+Dir[i][0];
@@ -61,7 +61,7 @@ function putStone(client, putData){
       // console.log(""+RoomData[client.roomId].board[i][0]+" "+RoomData[client.roomId].board[i][1]+" "+RoomData[client.roomId].board[i][2]+" "+RoomData[client.roomId].board[i][3]+" "+RoomData[client.roomId].board[i][4]+" "+RoomData[client.roomId].board[i][5]+" "+RoomData[client.roomId].board[i][6]+" "+RoomData[client.roomId].board[i][7]+" "+RoomData[client.roomId].board[i][8]+" "+RoomData[client.roomId].board[i][9]);
     // }
     if(canPut){
-      console.log('can put disc!!!!!');
+//      console.log('can put disc!!!!!');
       emitToRoom(client.roomId, 'put disc', RoomData[client.roomId].board);
     }
   }
